@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3C Card Showcase — Landing Upload</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="../favicon.png" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="config.js"></script>
+
+  <style>
+    :root {
+      --bg:           #0a0714;
+      --bg-panel:     #130f24;
+      --bg-input:     #0e0b1e;
+      --border:       rgba(124,58,237,0.25);
+      --border-focus: #a855f7;
+      --accent:       #7c3aed;
+      --accent-light: #a855f7;
+      --gold:         #C8A96E;
+      --gold-light:   #E2C98A;
+      --cyan:         #00D4FF;
+      --text:         #e2d9f3;
+      --text-2:       #9d8bbf;
+      --text-muted:   #594a7a;
+      --text-accent:  #c4b5f5;
+      --success:      #22c55e;
+      --danger:       #dc2626;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOOLBAR ─────────────────────────────────── */
+    #toolbar {
+      background: #12071f;
+      border-bottom: 1px solid rgba(124,58,237,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    }
+
+    #toolbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-light);
+    }
+
+    #toolbar-back {
+      font-size: 12px; font-weight: 700;
+      color: var(--text-accent);
+      background: var(--bg-panel);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    #toolbar-back:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ── WORKSPACE ───────────────────────────────── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 28px 32px;
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .col-panel {
+      background: var(--bg-panel);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .col-title {
+      font-size: 11px; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 1.4px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(124,58,237,0.15);
+    }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+
+    .field label {
+      font-size: 11px; font-weight: 700;
+      color: var(--text-2); text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    .field-hint {
+      font-size: 11px; color: var(--text-muted); line-height: 1.6;
+    }
+
+    /* ── SELECT ──────────────────────────────────── */
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: 'Open Sans', sans-serif;
+      border: 1.5px solid rgba(124,58,237,0.25);
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text);
+      cursor: pointer;
+      appearance: none;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    select:focus {
+      border-color: var(--accent-light);
+      box-shadow: 0 0 0 2px rgba(124,58,237,0.2);
+    }
+
+    /* ── UPLOAD AREA ─────────────────────────────── */
+    .upload-area {
+      border: 2px dashed rgba(124,58,237,0.3);
+      border-radius: 10px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: rgba(124,58,237,0.05);
+      position: relative;
+      flex: 1;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent-light);
+      background: rgba(124,58,237,0.12);
+    }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 2rem; margin-bottom: 10px; }
+    .upload-area p {
+      font-size: 12px; color: var(--text-muted); line-height: 1.6;
+    }
+    .upload-area strong { color: var(--text-accent); }
+    .chosen-file {
+      margin-top: 10px; font-size: 12px; font-weight: 700;
+      color: var(--cyan);
+    }
+
+    /* ── PREVIEW ─────────────────────────────────── */
+    #previewWrap {
+      display: none;
+      position: relative;
+      width: 100%;
+      max-width: 220px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #previewWrap::before {
+      content: ''; display: block; padding-top: 177.78%;
+    }
+    #previewWrap img, #previewWrap video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 10px; display: block;
+    }
+    #previewPlaceholder {
+      width: 100%; max-width: 220px; margin: 0 auto;
+      aspect-ratio: 9 / 16;
+      background: rgba(124,58,237,0.08);
+      border: 2px dashed rgba(124,58,237,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 12px;
+      text-align: center; padding: 20px;
+    }
+
+    /* ── UPLOAD BUTTON ───────────────────────────── */
+    #btnUpload {
+      width: 100%; padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.08em;
+      border: none; border-radius: 8px;
+      cursor: pointer; transition: background 0.18s;
+      text-transform: uppercase;
+    }
+    #btnUpload:disabled { opacity: 0.35; cursor: not-allowed; }
+    #btnUpload:hover:not(:disabled) {
+      background: #5b21b6;
+      box-shadow: 0 0 14px rgba(124,58,237,0.4);
+    }
+
+    /* ── PROGRESS ────────────────────────────────── */
+    #progressWrap {
+      display: none;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50px; height: 6px; overflow: hidden;
+    }
+    #progressBar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+      border-radius: 50px;
+      transition: width 0.2s ease;
+    }
+
+    /* ── STATUS ──────────────────────────────────── */
+    #statusMsg {
+      font-size: 12px; font-weight: 600;
+      line-height: 1.6; padding: 10px 14px;
+      border-radius: 8px; display: none;
+      white-space: pre-line;
+    }
+    #statusMsg.loading { display: block; background: rgba(124,58,237,0.1); color: var(--text-accent); border: 1px solid rgba(124,58,237,0.2); }
+    #statusMsg.success { display: block; background: rgba(34,197,94,0.1); color: #86efac; border: 1px solid rgba(34,197,94,0.25); }
+    #statusMsg.error   { display: block; background: rgba(220,38,38,0.1); color: #fca5a5; border: 1px solid rgba(220,38,38,0.25); }
+
+    /* ── RESULT URL ──────────────────────────────── */
+    #resultBlock {
+      display: none; flex-direction: column; gap: 8px;
+    }
+    #resultBlock label {
+      font-size: 11px; font-weight: 700;
+      color: var(--text-2); text-transform: uppercase; letter-spacing: 0.7px;
+    }
+    .url-row {
+      display: flex; gap: 8px;
+    }
+    .url-row input {
+      flex: 1; padding: 8px 10px;
+      background: var(--bg-input);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 7px; color: var(--text-accent);
+      font-size: 11px; outline: none;
+    }
+    .url-row button {
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 7px; color: var(--text-accent);
+      font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .url-row button:hover { background: var(--accent); color: #fff; }
+    #copiedMsg {
+      display: none; font-size: 11px;
+      color: var(--success); font-weight: 700;
+    }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    .admin-footer {
+      margin-top: auto; padding: 16px;
+      text-align: center;
+      font-size: 11px; color: var(--text-muted);
+      border-top: 1px solid rgba(124,58,237,0.15);
+    }
+    .admin-footer strong { color: var(--accent-light); }
+  </style>
+</head>
+<body>
+
+  <!-- ── TOOLBAR ──────────────────────────────────── -->
+  <header id="toolbar">
+    <div>
+      <div id="toolbar-title">3C Card Showcase</div>
+      <div style="font-size:13px;color:var(--text-2);margin-top:2px;">Landing Upload</div>
+    </div>
+    <a href="index.html" id="toolbar-back">&#8592; Back to Builder</a>
+  </header>
+
+  <!-- ── WORKSPACE ────────────────────────────────── -->
+  <div class="workspace">
+
+    <!-- LEFT — Select showcase + upload file -->
+    <div class="col-panel">
+      <div class="col-title">1 — Select &amp; Upload</div>
+
+      <!-- Showcase dropdown -->
+      <div class="field">
+        <label for="showcaseSelect">Select Showcase</label>
+        <select id="showcaseSelect">
+          <option value="">Loading showcases…</option>
+        </select>
+        <span class="field-hint">
+          Only saved showcases appear here.
+          Save your showcase in the builder first, then come back to upload the landing cover.
+        </span>
+      </div>
+
+      <!-- Upload area -->
+      <div class="field">
+        <label>Landing Cover Image</label>
+        <div
+          class="upload-area"
+          id="uploadArea"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)"
+        >
+          <input
+            type="file"
+            id="fileInput"
+            accept="image/*"
+            onchange="handleFileSelect(this)"
+          />
+          <div class="upload-icon">&#8679;</div>
+          <p>
+            Click to choose or drag &amp; drop<br/>
+            <strong>Image</strong> (PNG, JPG, WEBP)
+          </p>
+          <div class="chosen-file" id="chosenFileName"></div>
+        </div>
+        <span class="field-hint">
+          This is the first screen users see before entering the showcase.
+          Portrait orientation recommended — it displays as a card on the landing page.
+        </span>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- RIGHT — Preview + Upload to R2 -->
+    <div class="col-panel">
+      <div class="col-title">2 — Preview &amp; Save to Cloudflare</div>
+
+      <div id="previewPlaceholder">
+        Preview appears here<br/>after selecting a file
+      </div>
+      <div id="previewWrap"></div>
+
+      <div id="progressWrap"><div id="progressBar"></div></div>
+      <div id="statusMsg"></div>
+
+      <div id="resultBlock">
+        <label>Saved — public URL:</label>
+        <div class="url-row">
+          <input type="text" id="resultUrl" readonly />
+          <button onclick="copyUrl()">Copy</button>
+        </div>
+        <div id="copiedMsg">Copied!</div>
+      </div>
+
+      <button id="btnUpload" disabled onclick="uploadCover()">
+        Upload to Cloudflare
+      </button>
+
+    </div><!-- /right -->
+
+  </div><!-- /workspace -->
+
+  <footer class="admin-footer">
+    Built with &#9829; by <strong>Claude (Anthropic)</strong> &times; Chef Anica
+    &middot; 3C Thread To Success Cooking Lab &#129514;&#128104;&#8205;&#127859;
+  </footer>
+
+<script type="module">
+  import { fetchAllShowcases } from './supabaseAPI.js';
+
+  const WORKER_URL = window.APP_CONFIG?.WORKER_URL || 'https://3c-card-showcase.3c-innertherapy.workers.dev';
+
+  let selectedFile = null;
+
+  /* ── Load showcases dropdown ────────────────────── */
+  async function loadShowcases() {
+    const select = document.getElementById('showcaseSelect');
+    const data   = await fetchAllShowcases();
+
+    if (!data || !data.length) {
+      select.innerHTML = '<option value="">No saved showcases found — save one first</option>';
+      return;
+    }
+
+    select.innerHTML = '<option value="">— Choose a showcase —</option>' +
+      data.map(s =>
+        `<option value="${s.showcase_slug}">${s.showcase_slug} — ${s.title || 'Untitled'}</option>`
+      ).join('');
+  }
+
+  /* ── File handlers ──────────────────────────────── */
+  window.handleFileSelect = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    setFile(file);
+  };
+
+  window.handleDragOver = function(e) {
+    e.preventDefault();
+    document.getElementById('uploadArea').classList.add('dragover');
+  };
+
+  window.handleDragLeave = function() {
+    document.getElementById('uploadArea').classList.remove('dragover');
+  };
+
+  window.handleDrop = function(e) {
+    e.preventDefault();
+    document.getElementById('uploadArea').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    setFile(file);
+  };
+
+  function setFile(file) {
+    selectedFile = file;
+    document.getElementById('chosenFileName').textContent = file.name;
+
+    const placeholder = document.getElementById('previewPlaceholder');
+    const wrap        = document.getElementById('previewWrap');
+    wrap.innerHTML    = '';
+    placeholder.style.display = 'none';
+    wrap.style.display        = 'block';
+
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.alt = 'Preview';
+    wrap.appendChild(img);
+
+    checkReady();
+  }
+
+  document.getElementById('showcaseSelect').addEventListener('change', checkReady);
+
+  function checkReady() {
+    const slug = document.getElementById('showcaseSelect').value;
+    document.getElementById('btnUpload').disabled = !(slug && selectedFile);
+  }
+
+  /* ── Upload cover to R2 via worker ─────────────── */
+  window.uploadCover = async function() {
+    const slug = document.getElementById('showcaseSelect').value;
+    if (!slug || !selectedFile) return;
+
+    const ext = selectedFile.name.split('.').pop().toLowerCase();
+
+    setStatus('loading', 'Step 1 of 2 — Uploading cover image to R2…');
+    showProgress(true);
+    document.getElementById('btnUpload').disabled        = true;
+    document.getElementById('resultBlock').style.display = 'none';
+
+    try {
+      animateProgress(0, 50, 800);
+
+      /* PUT /cover/:slug */
+      const uploadRes = await fetch(`${WORKER_URL}/cover/${slug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type':     selectedFile.type || 'image/png',
+          'X-File-Extension': ext,
+        },
+        body: selectedFile,
+      });
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}));
+        throw new Error(err.error || `Upload error ${uploadRes.status}`);
+      }
+
+      const { public_url, r2_key } = await uploadRes.json();
+
+      setStatus('loading', 'Step 2 of 2 — Updating showcase JSON with cover URL…');
+      animateProgress(50, 80, 400);
+
+      /* Fetch existing showcase JSON, patch cover_url, re-save */
+      const getRes = await fetch(`${WORKER_URL}/showcase/${slug}`);
+      if (!getRes.ok) throw new Error(`Could not fetch showcase JSON (${getRes.status})`);
+      const showcaseJson = await getRes.json();
+
+      showcaseJson.cover_url = public_url;
+
+      const saveRes = await fetch(`${WORKER_URL}/showcase/${slug}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(showcaseJson),
+      });
+
+      if (!saveRes.ok) throw new Error(`Showcase JSON update failed (${saveRes.status})`);
+
+      animateProgress(80, 100, 300);
+
+      setTimeout(() => {
+        showProgress(false);
+        setStatus('success', `Done! Cover saved + showcase JSON updated.\nFile: ${r2_key}`);
+        document.getElementById('resultUrl').value          = public_url;
+        document.getElementById('resultBlock').style.display = 'flex';
+        document.getElementById('btnUpload').disabled        = false;
+      }, 350);
+
+    } catch (err) {
+      showProgress(false);
+      setStatus('error', err.message);
+      document.getElementById('btnUpload').disabled = false;
+    }
+  };
+
+  /* ── Copy URL ───────────────────────────────────── */
+  window.copyUrl = function() {
+    const urlEl = document.getElementById('resultUrl');
+    urlEl.select();
+    document.execCommand('copy');
+    const msg = document.getElementById('copiedMsg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 1200);
+  };
+
+  /* ── Helpers ────────────────────────────────────── */
+  function setStatus(type, msg) {
+    const el     = document.getElementById('statusMsg');
+    el.className  = type;
+    el.textContent = msg;
+  }
+
+  function showProgress(show) {
+    document.getElementById('progressWrap').style.display = show ? 'block' : 'none';
+    if (!show) document.getElementById('progressBar').style.width = '0%';
+  }
+
+  function animateProgress(from, to, duration) {
+    const bar   = document.getElementById('progressBar');
+    const steps = 20;
+    const step  = (to - from) / steps;
+    const delay = duration / steps;
+    let current = from;
+    const interval = setInterval(() => {
+      current += step;
+      bar.style.width = Math.min(current, to) + '%';
+      if (current >= to) clearInterval(interval);
+    }, delay);
+  }
+
+  /* ── Init ───────────────────────────────────────── */
+  loadShowcases();
+</script>
+
+</body>
+</html>
