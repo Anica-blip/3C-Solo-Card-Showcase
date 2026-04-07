@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3C Card Showcase — Admin Builder</title>
+  <link rel="icon" type="image/png" href="../favicon.png" />
+  <link rel="stylesheet" href="admin.css" />
+  <script src="./config.js"></script>
+</head>
+<body>
+
+  <!-- ── TOPBAR ──────────────────────────────────────── -->
+  <header id="toolbar">
+    <div id="toolbar-left">
+      <span id="toolbar-title">3C Card Showcase</span>
+      <span id="toolbar-sub">Admin Builder</span>
+    </div>
+    <div id="toolbar-right">
+      <button class="btn-toolbar" onclick="window._builder.newShowcase()">+ New</button>
+      <button class="btn-toolbar btn-save" onclick="window._builder.saveShowcaseHandler()">&#9744; Save Showcase</button>
+    </div>
+  </header>
+
+  <!-- ── MAIN ────────────────────────────────────────── -->
+  <div id="app">
+
+    <!-- ── SLUG + URL ROW ─────────────────────────────── -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <span class="slug-badge" id="slug-display">showcase.01</span>
+      <span style="font-size:12px;color:var(--text-muted);">
+        Auto-assigned · fill in title and cards below
+      </span>
+    </div>
+
+    <!-- Shareable URL (visible after save) -->
+    <div id="showcase-url-wrap">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);
+        text-transform:uppercase;letter-spacing:0.7px;">Shareable URL:</span>
+      <input type="text" id="showcase-url-display" readonly
+        style="flex:1;min-width:240px;font-size:11px;" />
+      <button class="btn-toolbar btn-save" style="font-size:11px;padding:5px 12px;"
+        onclick="window._builder.copyShowcaseUrl()">Copy URL</button>
+      <a id="open-url-btn" href="#" target="_blank" rel="noopener"
+        class="btn-toolbar" style="font-size:11px;padding:5px 12px;text-decoration:none;">
+        Open &#8599;
+      </a>
+    </div>
+
+    <!-- ── META: Title + Cover + Music ───────────────── -->
+    <div class="meta-section">
+      <div class="section-title">Showcase Settings</div>
+
+      <!-- Title -->
+      <div>
+        <label class="field-label" for="showcase-title">Showcase Title *</label>
+        <input type="text" id="showcase-title" placeholder="e.g. Quote Cards · Affirmations" />
+        <div class="field-hint">Shown on the landing page</div>
+      </div>
+
+      <!-- Cover Image -->
+      <div>
+        <label class="field-label">Landing Cover Image</label>
+        <label class="upload-btn" for="upload-cover">&#8679; Upload Cover</label>
+        <input type="file" id="upload-cover" accept="image/*" style="display:none;" />
+        <span id="cover-name" class="upload-filename">No file</span>
+        <div style="margin-top:8px;">
+          <img id="cover-preview" src="" alt="Cover preview"
+            style="display:none;width:60px;height:80px;object-fit:cover;
+              border-radius:6px;border:1px solid var(--border-light);"
+            onload="this.style.display='block'" onerror="this.style.display='none'" />
+        </div>
+        <div class="field-hint">Shown on landing.html before entering</div>
+      </div>
+
+      <!-- Ambient Music -->
+      <div>
+        <label class="field-label">Ambient Music</label>
+        <label class="upload-btn" for="upload-music">&#9836; Upload Audio</label>
+        <input type="file" id="upload-music" accept="audio/*" style="display:none;" />
+        <span id="music-name" class="upload-filename">No file</span>
+        <div class="field-hint">MP3 / OGG — optional background audio</div>
+      </div>
+    </div>
+
+    <!-- ── STATUS ─────────────────────────────────────── -->
+    <div id="status-msg"></div>
+
+    <!-- ── TWO PANEL LAYOUT ───────────────────────────── -->
+    <div class="two-panel">
+
+      <!-- LEFT — Card Navigator -->
+      <div class="panel-left">
+        <div class="nav-header">
+          <span>Cards</span>
+          <button class="btn-toolbar btn-save" style="padding:4px 10px;font-size:11px;"
+            onclick="window._builder.addCard()">+ Add</button>
+        </div>
+
+        <!-- Large preview of selected card -->
+        <div class="card-preview-large" id="card-preview-large">
+          <div class="card-preview-empty">No cards yet<br/>Click + Add</div>
+        </div>
+
+        <!-- Navigation arrows + counter -->
+        <div class="nav-controls">
+          <button class="nav-arrow" id="nav-prev"
+            onclick="window._builder.navPrev()">&#8249;</button>
+          <span class="nav-counter" id="nav-counter">0 of 0</span>
+          <button class="nav-arrow" id="nav-next"
+            onclick="window._builder.navNext()">&#8250;</button>
+        </div>
+
+        <!-- Shape selector + upload for current card -->
+        <div id="card-details"></div>
+      </div>
+
+      <!-- RIGHT — Card Grid (5 per row) -->
+      <div class="panel-right">
+        <div class="grid-header">
+          <span>All Cards</span>
+          <span class="card-count-badge" id="card-count">0 cards</span>
+        </div>
+        <div id="card-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;
+            font-size:13px;color:var(--text-muted);">
+            No cards added yet. Click + Add to start.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /two-panel -->
+
+    <!-- ── ARCHIVE ─────────────────────────────────────── -->
+    <div id="showcase-archive" style="margin-top:36px;">
+      <p style="color:var(--text-muted);font-size:13px;">Loading archive...</p>
+    </div>
+
+    <!-- ── FOOTER WATERMARK ───────────────────────────── -->
+    <footer class="admin-footer">
+      Built with &#9829; by <strong>Claude (Anthropic)</strong> &times; Chef Anica
+      &middot; 3C Thread To Success Cooking Lab &#129514;&#128104;&#8205;&#127859;
+    </footer>
+
+  </div><!-- /app -->
+
+  <script type="module">
+    import {
+      init,
+      addCard,
+      removeCard,
+      removeCardAt,
+      moveCard,
+      setShape,
+      navPrev,
+      navNext,
+      newShowcase,
+      saveShowcaseHandler,
+      copyShowcaseUrl,
+      editShowcase,
+      deleteShowcaseHandler,
+      toggleActive,
+    } from './builder.js';
+
+    window._builder = {
+      addCard,
+      removeCard,
+      removeCardAt,
+      moveCard,
+      setShape,
+      navPrev,
+      navNext,
+      newShowcase,
+      saveShowcaseHandler,
+      copyShowcaseUrl,
+      editShowcase,
+      deleteShowcaseHandler,
+      toggleActive,
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+</body>
+</html>
