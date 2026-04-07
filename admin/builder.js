@@ -84,7 +84,7 @@ function renderLeft() {
     const src = card.localPreview || card.image_url || '';
     wrap.innerHTML = src
       ? `<img src="${src}" alt="Card ${currentIndex + 1}" />`
-      : `<div class="card-preview-empty">No image<br/>Upload below</div>`;
+      : `<div class="card-preview-empty">No image yet<br/>Upload below</div>`;
   } else {
     wrap.innerHTML = `<div class="card-preview-empty">No cards yet<br/>Click + Add</div>`;
   }
@@ -116,14 +116,10 @@ function renderLeft() {
           onclick="window._builder.setShape('circle')">Circle</button>
       </div>
     </div>
-    <div class="card-detail-row">
+    <div class="card-detail-row" style="margin-top:8px;">
       <label class="field-label">Image</label>
-      <label class="upload-btn" for="upload-card-img">&#8679; Upload</label>
+      <label class="upload-btn-green" for="upload-card-img">&#8679; Upload Image</label>
       <input type="file" id="upload-card-img" accept="image/*" style="display:none;" />
-    </div>
-    <div class="card-detail-row" style="margin-top:10px;">
-      <button class="btn-toolbar btn-danger" style="width:100%;justify-content:center;"
-        onclick="window._builder.removeCard()">&#10005; Remove Card</button>
     </div>
   `;
 
@@ -255,7 +251,6 @@ export function newShowcase() {
   document.getElementById('music-name').textContent  = 'No file';
   document.getElementById('showcase-url-wrap').classList.remove('visible');
 
-  archive = archive; // keep archive loaded
   currentSlug = generateNextSlug(archive);
   updateSlugDisplay();
   renderLeft();
@@ -276,7 +271,7 @@ export async function saveShowcaseHandler() {
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i];
       const file = pendingCardFiles[card.id];
-      if (!file) continue; // already in R2 or no image
+      if (!file) continue;
 
       const ext      = file.name.split('.').pop().toLowerCase();
       const filename = `card-${String(i + 1).padStart(3, '0')}.${ext}`;
@@ -377,7 +372,6 @@ export async function saveShowcaseHandler() {
     openBtn.href   = showcaseUrl;
     document.getElementById('showcase-url-wrap').classList.add('visible');
 
-    // Refresh archive
     archive = await fetchAllShowcases();
     renderArchive();
     showStatus(`Showcase "${title}" saved successfully!`, 'success');
@@ -474,7 +468,7 @@ function renderArchive() {
       <td>${s.title || '—'}</td>
       <td>
         <span style="color:${s.is_active ? 'var(--success)' : 'var(--text-muted)'};">
-          ${s.is_active ? '● Active' : '○ Inactive'}
+          ${s.is_active ? '&#9679; Active' : '&#9675; Inactive'}
         </span>
       </td>
       <td>${new Date(s.created_at).toLocaleDateString()}</td>
@@ -483,7 +477,7 @@ function renderArchive() {
         <button class="btn-toolbar" onclick="window._builder.toggleActive('${s.showcase_slug}',${s.is_active})">
           ${s.is_active ? 'Deactivate' : 'Activate'}
         </button>
-        <a class="btn-toolbar" href="${s.showcase_url || '#'}" target="_blank" rel="noopener">Open ↗</a>
+        <a class="btn-toolbar" href="${s.showcase_url || '#'}" target="_blank" rel="noopener">Open &#8599;</a>
         <button class="btn-toolbar btn-danger"
           onclick="window._builder.deleteShowcaseHandler('${s.showcase_slug}')">Delete</button>
       </td>
@@ -495,11 +489,7 @@ function renderArchive() {
     <table>
       <thead>
         <tr>
-          <th>Slug</th>
-          <th>Title</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Actions</th>
+          <th>Slug</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
