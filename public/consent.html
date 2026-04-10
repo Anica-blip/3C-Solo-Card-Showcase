@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>3C Card Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="../favicon.png" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #06040f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Open Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── TV OUTER FRAME ── matches the viewer ── */
+    .tv-frame {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: min(720px, 95vw);
+    }
+
+    /* ── TV BEZEL ── */
+    .tv-bezel {
+      width: 100%;
+      background: linear-gradient(160deg, #1a1a28 0%, #0d0d1a 100%);
+      border-radius: 18px 18px 0 0;
+      padding: 14px 14px 0;
+      border: 1.5px solid rgba(160,160,200,0.12);
+      border-bottom: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 -4px 30px rgba(0,0,80,0.3);
+    }
+
+    /* ── TV SCREEN ── */
+    .tv-screen {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #050510;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 80px rgba(0,0,60,0.5),
+        inset 0 0 2px rgba(120,80,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Scanline texture */
+    .tv-screen::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px, rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none; z-index: 10;
+    }
+
+    /* Screen glow */
+    .screen-glow {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(80,40,160,0.08) 0%, transparent 70%);
+      pointer-events: none; z-index: 1;
+    }
+
+    /* ── CONSENT CONTENT ── */
+    .consent-body {
+      position: relative; z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(10px, 2vw, 20px);
+      padding: clamp(16px, 4vw, 40px);
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Brand line */
+    .consent-brand {
+      font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(168,85,247,0.6);
+    }
+
+    /* Title */
+    .consent-title {
+      font-size: clamp(0.95rem, 2.5vw, 1.5rem);
+      font-weight: 800;
+      color: #e2d9f3;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+    }
+
+    /* Divider */
+    .consent-divider {
+      width: min(200px, 60%);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(168,85,247,0.5), transparent);
+    }
+
+    /* Description */
+    .consent-desc {
+      font-size: clamp(0.65rem, 1.4vw, 0.82rem);
+      color: rgba(196,181,245,0.6);
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    /* Audio notice — only shown when ambient music exists */
+    .audio-notice {
+      display: none; /* shown via JS if music present */
+      align-items: center;
+      gap: 8px;
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 8px;
+      padding: clamp(6px, 1.5vw, 10px) clamp(10px, 2vw, 16px);
+      font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+      color: rgba(196,181,245,0.7);
+    }
+    .audio-notice.visible { display: flex; }
+    .audio-icon {
+      font-size: clamp(0.8rem, 1.8vw, 1rem);
+      color: rgba(168,85,247,0.7);
+      flex-shrink: 0;
+    }
+
+    /* Card count info */
+    .consent-meta {
+      font-size: clamp(0.6rem, 1.2vw, 0.72rem);
+      color: rgba(196,181,245,0.4);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── BEGIN BUTTON ── */
+    .btn-begin {
+      margin-top: clamp(4px, 1vw, 8px);
+      font-family: 'Open Sans', sans-serif;
+      font-size: clamp(0.7rem, 1.6vw, 0.9rem);
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3B1265;
+      background: linear-gradient(135deg, #E2C98A, #C8A96E);
+      border: none;
+      border-radius: 50px;
+      padding: clamp(10px, 2vw, 14px) clamp(28px, 6vw, 48px);
+      cursor: pointer;
+      box-shadow:
+        0 0 18px rgba(226,201,138,0.5),
+        0 0 36px rgba(200,169,110,0.3),
+        0 4px 20px rgba(200,169,110,0.4);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .btn-begin:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 28px rgba(226,201,138,0.8),
+        0 0 55px rgba(200,169,110,0.5),
+        0 8px 28px rgba(200,169,110,0.6);
+    }
+    .btn-begin:active { transform: scale(0.96); }
+
+    /* Back link */
+    .btn-back {
+      background: none;
+      border: 1px solid rgba(160,160,200,0.2);
+      border-radius: 20px;
+      padding: clamp(4px, 1vw, 6px) clamp(12px, 2.5vw, 18px);
+      font-size: clamp(0.55rem, 1.1vw, 0.68rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: rgba(196,181,245,0.4);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+    .btn-back:hover {
+      border-color: rgba(160,160,200,0.4);
+      color: rgba(196,181,245,0.7);
+    }
+
+    /* ── CONTROLS BEZEL ── */
+    .tv-controls {
+      width: 100%;
+      background: linear-gradient(160deg, #14141f 0%, #0a0a14 100%);
+      border-radius: 0 0 18px 18px;
+      border: 1.5px solid rgba(160,160,200,0.12);
+      border-top: none;
+      padding: 10px 18px 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .bezel-title {
+      font-size: clamp(0.55rem, 1.1vw, 0.68rem);
+      font-weight: 700;
+      color: rgba(196,181,245,0.35);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    /* ── TV STAND ── */
+    .tv-stand {
+      width: 30%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .stand-neck {
+      width: 18px; height: 22px;
+      background: linear-gradient(180deg, #1a1a28, #0d0d1a);
+      border-left: 1.5px solid rgba(160,160,200,0.1);
+      border-right: 1.5px solid rgba(160,160,200,0.1);
+    }
+    .stand-base {
+      width: 100%; height: 8px;
+      background: linear-gradient(180deg, #1a1a28, #0d0d1a);
+      border-radius: 0 0 6px 6px;
+      border: 1.5px solid rgba(160,160,200,0.1);
+      border-top: none;
+    }
+
+    /* ── WATERMARK ── */
+    .watermark {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: clamp(0.45rem, 0.9vw, 0.58rem);
+      color: rgba(196,181,245,0.2);
+      letter-spacing: 0.05em;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* ── FOOTER WATERMARK ── */
+    .consent-footer {
+      margin-top: 10px;
+      text-align: center;
+      font-size: clamp(0.5rem, 1vw, 0.65rem);
+      color: rgba(196,181,245,0.25);
+      letter-spacing: 0.05em;
+      line-height: 1.6;
+    }
+    .consent-footer strong { color: rgba(168,85,247,0.45); }
+
+    @media (max-width: 600px) {
+      .tv-frame { width: 100vw; }
+      .tv-bezel { border-radius: 0; padding: 8px 8px 0; }
+      .tv-controls { border-radius: 0; }
+      .tv-stand { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="tv-frame">
+
+  <!-- Bezel + screen -->
+  <div class="tv-bezel">
+    <div class="tv-screen">
+      <div class="screen-glow"></div>
+
+      <!-- Watermark top-right -->
+      <div class="watermark">3C Thread To Success</div>
+
+      <!-- Consent content -->
+      <div class="consent-body">
+        <div class="consent-brand">3C Thread To Success</div>
+
+        <div class="consent-title" id="consent-title">Card Showcase</div>
+
+        <div class="consent-divider"></div>
+
+        <div class="consent-desc" id="consent-desc">
+          A curated visual experience — cards float one by one across your screen.<br/>
+          You may download any card during the showcase.<br/>
+          Exit at any time using the button on the screen.
+        </div>
+
+        <!-- Audio notice — visible only when music present -->
+        <div class="audio-notice" id="audio-notice">
+          <span class="audio-icon">&#9836;</span>
+          <span>
+            This showcase includes ambient background music.
+            You can toggle it on or off at any time using the sound button on the screen.
+          </span>
+        </div>
+
+        <div class="consent-meta" id="consent-meta"></div>
+
+        <button class="btn-begin" id="btn-begin" onclick="beginShowcase()">
+          Begin
+        </button>
+
+        <button class="btn-back" onclick="goBack()">&#8592; Back</button>
+      </div>
+
+    </div>
+  </div><!-- /bezel -->
+
+  <!-- Controls bezel -->
+  <div class="tv-controls">
+    <div class="bezel-title" id="bezel-label">3C Card Showcase</div>
+  </div>
+
+  <!-- Stand -->
+  <div class="tv-stand">
+    <div class="stand-neck"></div>
+    <div class="stand-base"></div>
+  </div>
+
+  <!-- Footer watermark -->
+  <div class="consent-footer">
+    Built with &#9829; by <strong>Claude (Anthropic)</strong> &times; Chef Anica
+    &middot; 3C Thread To Success Cooking Lab &#129514;&#128104;&#8205;&#127859;
+  </div>
+
+</div><!-- /tv-frame -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   public/consent.html — 3C Card Showcase
+   ────────────────────────────────────────────────────
+   Sits between landing.html and the TV viewer.
+   Reads showcaseData from sessionStorage (set by landing).
+   Shows title, card count, audio notice if music exists.
+   BEGIN → index.html?showcase={slug}
+   Built by Claude (Anthropic) × Chef Anica
+   3C Thread To Success Cooking Lab
+═══════════════════════════════════════════════════ */
+
+  const VIEWER_PAGE = 'index.html';
+  const LANDING_PAGE = '../landing.html';
+
+  function getSlug() {
+    return new URLSearchParams(location.search).get('showcase');
+  }
+
+  function init() {
+    const slug = getSlug();
+
+    // Read data stored by landing.html
+    let data = null;
+    try {
+      const cached = sessionStorage.getItem('showcaseData');
+      if (cached) data = JSON.parse(cached);
+      // Keep in sessionStorage so viewer can also read it
+    } catch(_) {}
+
+    const title    = data?.title || 'Card Showcase';
+    const cards    = data?.cards || [];
+    const hasMusic = !!(data?.ambient_music_url);
+
+    // Title
+    document.getElementById('consent-title').textContent = title;
+    document.getElementById('bezel-label').textContent   = title;
+
+    // Card count
+    if (cards.length > 0) {
+      document.getElementById('consent-meta').textContent =
+        `${cards.length} card${cards.length !== 1 ? 's' : ''} in this showcase`;
+    }
+
+    // Audio notice
+    if (hasMusic) {
+      document.getElementById('audio-notice').classList.add('visible');
+    }
+  }
+
+  window.beginShowcase = function() {
+    const slug = getSlug();
+    if (!slug) { location.href = LANDING_PAGE; return; }
+    // sessionStorage data still there — viewer will read it
+    location.href = `${VIEWER_PAGE}?showcase=${encodeURIComponent(slug)}`;
+  };
+
+  window.goBack = function() {
+    const slug = getSlug();
+    location.href = slug
+      ? `${LANDING_PAGE}?showcase=${encodeURIComponent(slug)}`
+      : LANDING_PAGE;
+  };
+
+  init();
+</script>
+
+</body>
+</html>
