@@ -5,14 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>3C Card Showcase — 3C Thread To Success</title>
 
-  <!-- Open Graph -->
   <meta property="og:title"       content="3C Card Showcase" />
   <meta property="og:description" content="A curated visual experience — cards crafted to inspire." />
   <meta property="og:image"       content="https://files.3c-public-library.org/CardShowcase/og-preview.png" />
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="3C Thread To Success" />
-
-  <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:title"       content="3C Card Showcase" />
   <meta name="twitter:description" content="A curated visual experience — cards crafted to inspire." />
@@ -58,24 +55,6 @@
       }
     }
 
-    .media-wrap {
-      position: absolute; inset: 0; z-index: 0;
-      overflow: hidden; display: none;
-    }
-    .media-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover; object-position: center;
-    }
-
-    .media-overlay {
-      position: absolute; inset: 0; z-index: 1;
-      background: linear-gradient(
-        to bottom,
-        rgba(10,7,20,0.05) 0%,
-        rgba(10,7,20,0.62) 100%
-      );
-    }
-
     .media-fallback {
       position: absolute; inset: 0; z-index: 0;
       background: radial-gradient(ellipse at 50% 40%, #2d1b4e 0%, #0a0714 100%);
@@ -85,20 +64,21 @@
     }
     .fallback-brand {
       font-size: 0.72rem; color: rgba(168,85,247,0.8);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      text-align: center;
+      letter-spacing: 0.2em; text-transform: uppercase; text-align: center;
     }
     .fallback-title {
       font-size: clamp(1.1rem, 4vw, 1.4rem);
       font-weight: 800; color: #e2d9f3;
       text-align: center; line-height: 1.4;
     }
-    .fallback-divider {
-      width: 60%; height: 1px;
-      background: rgba(124,58,237,0.4);
+    .fallback-divider { width: 60%; height: 1px; background: rgba(124,58,237,0.4); }
+
+    .media-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to bottom, rgba(10,7,20,0.05) 0%, rgba(10,7,20,0.62) 100%);
+      pointer-events: none;
     }
 
-    /* Cover card — sits above background, below button */
     .cover-asset-container {
       position: absolute;
       top: 50%; left: 50%;
@@ -114,7 +94,6 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.6);
     }
 
-    /* ENTER button */
     .landing-content {
       position: absolute; inset: 0; z-index: 3;
       display: flex; flex-direction: column;
@@ -125,13 +104,11 @@
     .btn-enter {
       font-family: 'Open Sans', sans-serif;
       font-size: clamp(0.85rem, 2.5vw, 1rem);
-      font-weight: 800;
-      letter-spacing: 0.18em;
+      font-weight: 800; letter-spacing: 0.18em;
       color: #3B1265;
       background: linear-gradient(135deg, #E2C98A, #C8A96E);
       border: none; border-radius: 50px;
-      padding: 15px 54px;
-      cursor: pointer;
+      padding: 15px 54px; cursor: pointer;
       box-shadow:
         0 0 20px rgba(226,201,138,0.6),
         0 0 40px rgba(200,169,110,0.4),
@@ -151,26 +128,17 @@
       position: absolute; inset: 0; z-index: 10;
       background: #0a0714;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Open Sans', sans-serif;
-      color: #a855f7; font-size: 0.85rem;
-      letter-spacing: 0.14em;
+      color: #a855f7; font-size: 0.85rem; letter-spacing: 0.14em;
       animation: pulse 1.8s ease-in-out infinite;
     }
-
     #errorState {
       display: none; position: absolute; inset: 0; z-index: 10;
       background: #0a0714; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 12px; padding: 32px; text-align: center;
     }
-    #errorState strong {
-      font-family: 'Open Sans', sans-serif;
-      color: #a855f7; font-size: 0.95rem;
-    }
-    #errorState p {
-      color: rgba(196,181,245,0.6);
-      font-size: 0.82rem; line-height: 1.6;
-    }
+    #errorState strong { color: #a855f7; font-size: 0.95rem; }
+    #errorState p { color: rgba(196,181,245,0.6); font-size: 0.82rem; line-height: 1.6; }
 
     @keyframes pulse {
       0%, 100% { opacity: 0.4; }
@@ -181,14 +149,11 @@
 <body>
 
 <div class="device" id="device">
-
   <div id="loadingState">Loading…</div>
-
   <div id="errorState">
     <strong>Showcase not found</strong>
     <p>This link may be invalid or the showcase has been removed.</p>
   </div>
-
   <div class="media-fallback" id="mediaFallback" style="display:none;">
     <span class="fallback-brand">3C Thread To Success</span>
     <div class="fallback-divider"></div>
@@ -197,30 +162,21 @@
       A curated visual experience
     </span>
   </div>
-
-  <div class="media-wrap" id="mediaWrap" style="display:none;"></div>
   <div class="media-overlay" id="mediaOverlay" style="display:none;"></div>
-
   <div class="landing-content" id="landingContent" style="display:none;">
     <button class="btn-enter" id="btnEnter">ENTER</button>
   </div>
-
 </div>
 
 <script>
 /* ═══════════════════════════════════════════════════
    landing.html — 3C Card Showcase
-   ────────────────────────────────────────────────────
-   1. Reads ?showcase= slug from URL
-   2. Fetches showcase JSON from R2 via worker
-   3. Loads cover_url as overlay card image
-   4. ENTER → public/index.html?showcase={slug}
+   Flow: landing → consent → viewer
    Built by Claude (Anthropic) × Chef Anica
    3C Thread To Success Cooking Lab
 ═══════════════════════════════════════════════════ */
-
-  const WORKER_URL = 'https://3c-card-showcase.3c-innertherapy.workers.dev';
-  const PUBLIC_APP = 'public/index.html';
+  const WORKER_URL   = 'https://3c-card-showcase.3c-innertherapy.workers.dev';
+  const CONSENT_PAGE = 'public/consent.html';
 
   function getSlug() {
     return new URLSearchParams(location.search).get('showcase');
@@ -237,44 +193,36 @@
     const title    = data?.title || 'Card Showcase';
     const coverUrl = data?.cover_url || '';
 
-    // Background — subtle gradient always shown
     document.getElementById('fallbackTitle').textContent   = title;
     document.getElementById('mediaFallback').style.display = 'flex';
     document.getElementById('mediaOverlay').style.display  = 'block';
 
-    // Cover card on top of background
     if (coverUrl) {
       const container = document.createElement('div');
       container.className = 'cover-asset-container';
-
       const img    = new Image();
-      img.onload   = () => {
-        container.appendChild(img);
-        document.getElementById('device').appendChild(container);
-      };
-      img.onerror  = () => console.warn('Cover image failed to load:', coverUrl);
+      img.onload   = () => { container.appendChild(img); document.getElementById('device').appendChild(container); };
+      img.onerror  = () => console.warn('Cover image failed:', coverUrl);
       img.src      = coverUrl;
       img.alt      = title;
     }
 
-    // ENTER button
     document.getElementById('landingContent').style.display = 'flex';
     document.getElementById('btnEnter').onclick = () => {
+      // Pass full data through to consent → viewer
       sessionStorage.setItem('showcaseData', JSON.stringify(data || {}));
-      location.href = `${PUBLIC_APP}?showcase=${encodeURIComponent(slug)}`;
+      location.href = `${CONSENT_PAGE}?showcase=${encodeURIComponent(slug)}`;
     };
   }
 
   (function init() {
     const slug = getSlug();
     if (!slug) { showError(); return; }
-
     fetch(`${WORKER_URL}/showcase/${slug}`)
       .then(r => { if (!r.ok) throw new Error('Not found'); return r.json(); })
       .then(data  => showLanding(slug, data))
       .catch(()   => showLanding(slug, null));
   })();
 </script>
-
 </body>
 </html>
