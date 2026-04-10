@@ -13,156 +13,146 @@
     html, body {
       width: 100%; height: 100%;
       background: #06040f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-family: 'Open Sans', sans-serif;
       overflow: hidden;
     }
 
-    /* ── TV OUTER FRAME ── matches the viewer ── */
     .tv-frame {
       position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      display: flex; flex-direction: column; align-items: center;
       width: min(720px, 95vw);
     }
 
-    /* ── TV BEZEL ── */
+    /* ── SILVER BEZEL ── */
     .tv-bezel {
       width: 100%;
-      background: linear-gradient(160deg, #1a1a28 0%, #0d0d1a 100%);
+      background: linear-gradient(160deg, #22223a 0%, #0d0d1a 60%, #18182c 100%);
       border-radius: 18px 18px 0 0;
       padding: 14px 14px 0;
-      border: 1.5px solid rgba(160,160,200,0.12);
       border-bottom: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 -4px 30px rgba(0,0,80,0.3);
+      position: relative;
+      box-shadow:
+        0 0 0 2px rgba(210,210,230,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 -4px 30px rgba(0,0,80,0.3);
+    }
+    .tv-bezel::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      border-radius: 18px 18px 0 0;
+      background: linear-gradient(90deg,
+        rgba(120,120,140,0.3) 0%, rgba(220,220,240,0.7) 30%,
+        rgba(255,255,255,0.9) 50%, rgba(220,220,240,0.7) 70%,
+        rgba(120,120,140,0.3) 100%);
     }
 
     /* ── TV SCREEN ── */
     .tv-screen {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #050510;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
+      width: 100%; aspect-ratio: 16 / 9;
+      background: #050510; border-radius: 8px;
+      position: relative; overflow: hidden;
       box-shadow:
-        inset 0 0 80px rgba(0,0,60,0.5),
-        inset 0 0 2px rgba(120,80,255,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+        inset 0 0 80px rgba(0,0,60,0.6),
+        inset 0 0 3px rgba(120,80,255,0.2),
+        0 2px 0 rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
     }
-
-    /* Scanline texture */
     .tv-screen::after {
       content: '';
       position: absolute; inset: 0;
       background: repeating-linear-gradient(
-        0deg,
-        rgba(0,0,0,0) 0px, rgba(0,0,0,0) 3px,
-        rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
+        0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0.035) 3px, rgba(0,0,0,0.035) 4px
       );
       pointer-events: none; z-index: 10;
     }
-
-    /* Screen glow */
     .screen-glow {
       position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 50%, rgba(80,40,160,0.08) 0%, transparent 70%);
+      background: radial-gradient(ellipse at 50% 50%, rgba(80,40,160,0.07) 0%, transparent 70%);
       pointer-events: none; z-index: 1;
+    }
+    .screen-watermark {
+      position: absolute; top: 10px; right: 14px;
+      font-size: clamp(0.44rem, 0.9vw, 0.56rem);
+      color: rgba(196,181,245,0.2); letter-spacing: 0.05em;
+      z-index: 3; pointer-events: none;
     }
 
     /* ── CONSENT CONTENT ── */
     .consent-body {
       position: relative; z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: clamp(10px, 2vw, 20px);
-      padding: clamp(16px, 4vw, 40px);
-      text-align: center;
-      width: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: clamp(10px, 2.2vw, 22px);
+      padding: clamp(20px, 5vw, 48px);
+      text-align: center; width: 100%;
     }
 
-    /* Brand line */
     .consent-brand {
-      font-size: clamp(0.55rem, 1.2vw, 0.7rem);
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(168,85,247,0.6);
+      font-size: clamp(0.55rem, 1.1vw, 0.68rem);
+      font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase;
+      color: #a855f7;
+      text-shadow: 0 0 12px rgba(168,85,247,0.8), 0 0 24px rgba(168,85,247,0.4);
     }
 
-    /* Title */
     .consent-title {
-      font-size: clamp(0.95rem, 2.5vw, 1.5rem);
-      font-weight: 800;
-      color: #e2d9f3;
-      line-height: 1.3;
-      letter-spacing: 0.02em;
+      font-size: clamp(1.1rem, 3vw, 1.8rem);
+      font-weight: 800; letter-spacing: 0.04em;
+      color: #ffffff;
+      text-shadow:
+        0 0 10px rgba(196,181,245,0.9),
+        0 0 30px rgba(168,85,247,0.6),
+        0 0 60px rgba(124,58,237,0.3);
+      line-height: 1.2;
     }
 
-    /* Divider */
     .consent-divider {
-      width: min(200px, 60%);
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(168,85,247,0.5), transparent);
+      width: min(180px, 55%); height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(168,85,247,0.7), transparent);
+      box-shadow: 0 0 8px rgba(168,85,247,0.5);
     }
 
-    /* Description */
-    .consent-desc {
-      font-size: clamp(0.65rem, 1.4vw, 0.82rem);
-      color: rgba(196,181,245,0.6);
-      line-height: 1.7;
-      max-width: 480px;
+    .consent-sub {
+      font-size: clamp(0.68rem, 1.4vw, 0.82rem);
+      color: rgba(196,181,245,0.9);
+      line-height: 1.8;
+      text-shadow: 0 0 8px rgba(168,85,247,0.3);
     }
 
-    /* Audio notice — only shown when ambient music exists */
     .audio-notice {
-      display: none; /* shown via JS if music present */
-      align-items: center;
-      gap: 8px;
-      background: rgba(124,58,237,0.1);
-      border: 1px solid rgba(124,58,237,0.25);
+      display: none;
+      align-items: center; gap: 8px;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(168,85,247,0.35);
       border-radius: 8px;
-      padding: clamp(6px, 1.5vw, 10px) clamp(10px, 2vw, 16px);
-      font-size: clamp(0.6rem, 1.2vw, 0.75rem);
-      color: rgba(196,181,245,0.7);
+      padding: clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 16px);
+      font-size: clamp(0.6rem, 1.15vw, 0.72rem);
+      color: rgba(196,181,245,0.85);
+      box-shadow: 0 0 12px rgba(124,58,237,0.15);
     }
     .audio-notice.visible { display: flex; }
-    .audio-icon {
-      font-size: clamp(0.8rem, 1.8vw, 1rem);
-      color: rgba(168,85,247,0.7);
-      flex-shrink: 0;
-    }
+    .audio-icon { font-size: clamp(0.85rem, 1.6vw, 1rem); color: #a855f7; flex-shrink: 0; }
 
-    /* Card count info */
     .consent-meta {
-      font-size: clamp(0.6rem, 1.2vw, 0.72rem);
-      color: rgba(196,181,245,0.4);
-      letter-spacing: 0.08em;
+      font-size: clamp(0.6rem, 1.1vw, 0.7rem);
+      color: rgba(168,85,247,0.6); letter-spacing: 0.1em; text-transform: uppercase;
+      text-shadow: 0 0 6px rgba(168,85,247,0.3);
     }
 
     /* ── BEGIN BUTTON ── */
     .btn-begin {
-      margin-top: clamp(4px, 1vw, 8px);
+      margin-top: clamp(2px, 0.8vw, 6px);
       font-family: 'Open Sans', sans-serif;
-      font-size: clamp(0.7rem, 1.6vw, 0.9rem);
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
+      font-size: clamp(0.72rem, 1.6vw, 0.92rem);
+      font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
       color: #3B1265;
       background: linear-gradient(135deg, #E2C98A, #C8A96E);
-      border: none;
-      border-radius: 50px;
-      padding: clamp(10px, 2vw, 14px) clamp(28px, 6vw, 48px);
+      border: none; border-radius: 50px;
+      padding: clamp(10px, 2vw, 15px) clamp(30px, 6vw, 54px);
       cursor: pointer;
       box-shadow:
-        0 0 18px rgba(226,201,138,0.5),
+        0 0 18px rgba(226,201,138,0.55),
         0 0 36px rgba(200,169,110,0.3),
         0 4px 20px rgba(200,169,110,0.4);
       transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -170,90 +160,74 @@
     .btn-begin:hover {
       transform: translateY(-2px);
       box-shadow:
-        0 0 28px rgba(226,201,138,0.8),
-        0 0 55px rgba(200,169,110,0.5),
+        0 0 28px rgba(226,201,138,0.85),
+        0 0 55px rgba(200,169,110,0.55),
         0 8px 28px rgba(200,169,110,0.6);
     }
     .btn-begin:active { transform: scale(0.96); }
 
-    /* Back link */
     .btn-back {
       background: none;
-      border: 1px solid rgba(160,160,200,0.2);
-      border-radius: 20px;
-      padding: clamp(4px, 1vw, 6px) clamp(12px, 2.5vw, 18px);
+      border: 1px solid rgba(168,85,247,0.25); border-radius: 20px;
+      padding: clamp(4px, 0.8vw, 6px) clamp(12px, 2.5vw, 18px);
       font-size: clamp(0.55rem, 1.1vw, 0.68rem);
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: rgba(196,181,245,0.4);
-      cursor: pointer;
-      transition: all 0.15s;
-      text-transform: uppercase;
+      font-weight: 700; letter-spacing: 0.1em;
+      color: rgba(168,85,247,0.5); cursor: pointer; transition: all 0.15s; text-transform: uppercase;
     }
-    .btn-back:hover {
-      border-color: rgba(160,160,200,0.4);
-      color: rgba(196,181,245,0.7);
-    }
+    .btn-back:hover { border-color: rgba(168,85,247,0.5); color: rgba(168,85,247,0.85); }
 
-    /* ── CONTROLS BEZEL ── */
+    /* ── SILVER CONTROLS BEZEL ── */
     .tv-controls {
       width: 100%;
-      background: linear-gradient(160deg, #14141f 0%, #0a0a14 100%);
+      background: linear-gradient(160deg, #18182c 0%, #0a0a14 100%);
       border-radius: 0 0 18px 18px;
-      border: 1.5px solid rgba(160,160,200,0.12);
       border-top: none;
       padding: 10px 18px 12px;
       display: flex; align-items: center; justify-content: center;
+      position: relative;
+      box-shadow:
+        0 0 0 2px rgba(210,210,230,0.17),
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 4px 20px rgba(0,0,0,0.5);
     }
-
+    .tv-controls::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(90deg,
+        rgba(120,120,140,0.3) 0%, rgba(200,200,220,0.6) 30%,
+        rgba(240,240,255,0.85) 50%, rgba(200,200,220,0.6) 70%,
+        rgba(120,120,140,0.3) 100%);
+    }
     .bezel-title {
       font-size: clamp(0.55rem, 1.1vw, 0.68rem);
-      font-weight: 700;
+      font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
       color: rgba(196,181,245,0.35);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
     }
 
     /* ── TV STAND ── */
-    .tv-stand {
-      width: 30%;
-      display: flex; flex-direction: column; align-items: center;
-    }
+    .tv-stand { width: 30%; display: flex; flex-direction: column; align-items: center; }
     .stand-neck {
       width: 18px; height: 22px;
-      background: linear-gradient(180deg, #1a1a28, #0d0d1a);
-      border-left: 1.5px solid rgba(160,160,200,0.1);
-      border-right: 1.5px solid rgba(160,160,200,0.1);
+      background: linear-gradient(180deg, #2a2a40, #0d0d1a);
+      border-left: 1.5px solid rgba(200,200,220,0.18);
+      border-right: 1.5px solid rgba(200,200,220,0.18);
     }
     .stand-base {
       width: 100%; height: 8px;
-      background: linear-gradient(180deg, #1a1a28, #0d0d1a);
+      background: linear-gradient(180deg, #2a2a40, #0d0d1a);
       border-radius: 0 0 6px 6px;
-      border: 1.5px solid rgba(160,160,200,0.1);
-      border-top: none;
+      border: 1.5px solid rgba(200,200,220,0.14); border-top: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
-    /* ── WATERMARK ── */
-    .watermark {
-      position: absolute;
-      top: 10px; right: 14px;
-      font-size: clamp(0.45rem, 0.9vw, 0.58rem);
-      color: rgba(196,181,245,0.2);
-      letter-spacing: 0.05em;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    /* ── FOOTER WATERMARK ── */
+    /* ── FOOTER ── */
     .consent-footer {
-      margin-top: 10px;
-      text-align: center;
-      font-size: clamp(0.5rem, 1vw, 0.65rem);
-      color: rgba(196,181,245,0.25);
-      letter-spacing: 0.05em;
-      line-height: 1.6;
+      margin-top: 10px; text-align: center;
+      font-size: clamp(0.48rem, 0.95vw, 0.62rem);
+      color: rgba(196,181,245,0.22); letter-spacing: 0.04em; line-height: 1.6;
     }
-    .consent-footer strong { color: rgba(168,85,247,0.45); }
+    .consent-footer strong { color: rgba(168,85,247,0.42); }
 
     @media (max-width: 600px) {
       .tv-frame { width: 100vw; }
@@ -266,82 +240,52 @@
 <body>
 
 <div class="tv-frame">
-
-  <!-- Bezel + screen -->
   <div class="tv-bezel">
     <div class="tv-screen">
       <div class="screen-glow"></div>
+      <div class="screen-watermark">3C Thread To Success</div>
 
-      <!-- Watermark top-right -->
-      <div class="watermark">3C Thread To Success</div>
-
-      <!-- Consent content -->
       <div class="consent-body">
         <div class="consent-brand">3C Thread To Success</div>
-
         <div class="consent-title" id="consent-title">Card Showcase</div>
-
         <div class="consent-divider"></div>
-
-        <div class="consent-desc" id="consent-desc">
-          A curated visual experience — cards float one by one across your screen.<br/>
-          You may download any card during the showcase.<br/>
-          Exit at any time using the button on the screen.
+        <div class="consent-sub">
+          Cards float one by one — download any card as you watch.<br/>
+          Exit at any time using the &#10005; button on screen.
         </div>
-
-        <!-- Audio notice — visible only when music present -->
         <div class="audio-notice" id="audio-notice">
           <span class="audio-icon">&#9836;</span>
-          <span>
-            This showcase includes ambient background music.
-            You can toggle it on or off at any time using the sound button on the screen.
-          </span>
+          <span>Ambient music plays automatically. Use &#9836; to mute.</span>
         </div>
-
         <div class="consent-meta" id="consent-meta"></div>
-
-        <button class="btn-begin" id="btn-begin" onclick="beginShowcase()">
-          Begin
-        </button>
-
+        <button class="btn-begin" onclick="beginShowcase()">Begin</button>
         <button class="btn-back" onclick="goBack()">&#8592; Back</button>
       </div>
-
     </div>
-  </div><!-- /bezel -->
+  </div>
 
-  <!-- Controls bezel -->
   <div class="tv-controls">
     <div class="bezel-title" id="bezel-label">3C Card Showcase</div>
   </div>
 
-  <!-- Stand -->
   <div class="tv-stand">
     <div class="stand-neck"></div>
     <div class="stand-base"></div>
   </div>
 
-  <!-- Footer watermark -->
   <div class="consent-footer">
     Built with &#9829; by <strong>Claude (Anthropic)</strong> &times; Chef Anica
     &middot; 3C Thread To Success Cooking Lab &#129514;&#128104;&#8205;&#127859;
   </div>
-
-</div><!-- /tv-frame -->
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════
    public/consent.html — 3C Card Showcase
-   ────────────────────────────────────────────────────
-   Sits between landing.html and the TV viewer.
-   Reads showcaseData from sessionStorage (set by landing).
-   Shows title, card count, audio notice if music exists.
-   BEGIN → index.html?showcase={slug}
    Built by Claude (Anthropic) × Chef Anica
    3C Thread To Success Cooking Lab
 ═══════════════════════════════════════════════════ */
-
-  const VIEWER_PAGE = 'index.html';
+  const VIEWER_PAGE  = 'index.html';
   const LANDING_PAGE = '../landing.html';
 
   function getSlug() {
@@ -349,31 +293,24 @@
   }
 
   function init() {
-    const slug = getSlug();
-
-    // Read data stored by landing.html
     let data = null;
     try {
       const cached = sessionStorage.getItem('showcaseData');
       if (cached) data = JSON.parse(cached);
-      // Keep in sessionStorage so viewer can also read it
     } catch(_) {}
 
     const title    = data?.title || 'Card Showcase';
     const cards    = data?.cards || [];
     const hasMusic = !!(data?.ambient_music_url);
 
-    // Title
     document.getElementById('consent-title').textContent = title;
     document.getElementById('bezel-label').textContent   = title;
 
-    // Card count
     if (cards.length > 0) {
       document.getElementById('consent-meta').textContent =
         `${cards.length} card${cards.length !== 1 ? 's' : ''} in this showcase`;
     }
 
-    // Audio notice
     if (hasMusic) {
       document.getElementById('audio-notice').classList.add('visible');
     }
@@ -382,7 +319,6 @@
   window.beginShowcase = function() {
     const slug = getSlug();
     if (!slug) { location.href = LANDING_PAGE; return; }
-    // sessionStorage data still there — viewer will read it
     location.href = `${VIEWER_PAGE}?showcase=${encodeURIComponent(slug)}`;
   };
 
@@ -395,6 +331,5 @@
 
   init();
 </script>
-
 </body>
 </html>
