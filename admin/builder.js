@@ -29,6 +29,8 @@ let archive      = [];
 let pendingCardFiles  = {};   // cardId → File
 let pendingCoverFile  = null;
 let pendingMusicFile  = null;
+let _savedCoverUrl    = '';   // existing R2 URL preserved on edit
+let _savedMusicUrl    = '';   // existing R2 URL preserved on edit
 
 const WORKER_URL = window.APP_CONFIG.WORKER_URL;
 const BASE_URL   = window.APP_CONFIG.SHOWCASE_BASE_URL;
@@ -256,11 +258,13 @@ export function navNext() {
 
 /* ── NEW SHOWCASE ────────────────────────────────── */
 export function newShowcase() {
-  cards           = [];
-  currentIndex    = 0;
+  cards            = [];
+  currentIndex     = 0;
   pendingCardFiles = {};
   pendingCoverFile = null;
   pendingMusicFile = null;
+  _savedCoverUrl   = '';
+  _savedMusicUrl   = '';
 
   document.getElementById('showcase-title').value = '';
   document.getElementById('cover-name').textContent  = 'No file';
@@ -307,7 +311,8 @@ export async function saveShowcaseHandler() {
     }
 
     /* 2. Upload cover image */
-    let coverUrl = document.getElementById('cover-preview')?.src || '';
+    // Preserve existing R2 URL if no new file is being uploaded
+    let coverUrl = _savedCoverUrl || '';
     if (pendingCoverFile) {
       showStatus('Uploading cover image...', 'info');
       const ext = pendingCoverFile.name.split('.').pop().toLowerCase();
@@ -326,7 +331,8 @@ export async function saveShowcaseHandler() {
     }
 
     /* 3. Upload ambient music */
-    let musicUrl = '';
+    // Preserve existing R2 URL if no new file is being uploaded
+    let musicUrl = _savedMusicUrl || '';
     if (pendingMusicFile) {
       showStatus('Uploading ambient music...', 'info');
       const ext = pendingMusicFile.name.split('.').pop().toLowerCase();
@@ -422,12 +428,15 @@ export async function editShowcase(slug) {
     shape:        c.shape || 'rectangle',
     image_url:    c.image_url || '',
     r2_key:       c.r2_key || '',
+    duration_ms:  c.duration_ms || 9000,
     localPreview: '',
   }));
-  currentIndex    = 0;
+  currentIndex     = 0;
   pendingCardFiles = {};
   pendingCoverFile = null;
   pendingMusicFile = null;
+  _savedCoverUrl   = data.cover_url || '';
+  _savedMusicUrl   = data.ambient_music_url || '';
 
   document.getElementById('showcase-title').value = data.title || '';
   document.getElementById('cover-name').textContent = data.cover_url ? 'Saved in R2' : 'No file';
