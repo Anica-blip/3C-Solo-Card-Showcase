@@ -119,19 +119,36 @@ function renderLeft() {
       </div>
     </div>
     <div class="card-detail-row" style="margin-top:8px;">
+      <label class="field-label">Media Type</label>
+      <div class="shape-selector">
+        <button class="shape-btn ${(card.media_type || 'image') === 'image' ? 'active' : ''}"
+          onclick="window._builder.setMediaType('image')">Image</button>
+        <button class="shape-btn ${card.media_type === 'video' ? 'active' : ''}"
+          onclick="window._builder.setMediaType('video')">Video</button>
+      </div>
+    </div>
+    <div class="card-detail-row" style="margin-top:8px;">
       <label class="field-label">Display Time (seconds)</label>
       <input type="number" id="card-duration"
-        min="3" max="60" step="1"
+        min="3" max="300" step="1"
         value="${card.duration_ms ? Math.round(card.duration_ms / 1000) : 9}"
         style="width:100%;background:var(--surface-2);border:1px solid var(--border-light);
                color:var(--text);border-radius:8px;padding:7px 10px;
                font-family:'Outfit',sans-serif;font-size:13px;outline:none;" />
-      <div class="field-hint" style="margin-top:4px;">Default: 9s — increase for text-heavy cards</div>
+      <div class="field-hint" style="margin-top:4px;">
+        ${card.media_type === 'video'
+          ? 'Auto-set from video length — override if needed'
+          : 'Default: 9s — increase for text-heavy cards'}
+      </div>
     </div>
     <div class="card-detail-row" style="margin-top:8px;">
-      <label class="field-label">Image</label>
-      <label class="upload-btn-green" for="upload-card-img">&#8679; Upload Image</label>
-      <input type="file" id="upload-card-img" accept="image/*" style="display:none;" />
+      <label class="field-label">${card.media_type === 'video' ? 'Video File' : 'Image File'}</label>
+      <label class="upload-btn-green" for="upload-card-img">
+        &#8679; ${card.media_type === 'video' ? 'Upload Video' : 'Upload Image'}
+      </label>
+      <input type="file" id="upload-card-img"
+        accept="${card.media_type === 'video' ? 'video/*' : 'image/*'}"
+        style="display:none;" />
     </div>
   `;
 
@@ -139,19 +156,44 @@ function renderLeft() {
     const file = e.target.files[0];
     if (!file || !card) return;
     pendingCardFiles[card.id] = file;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      card.localPreview = ev.target.result;
-      renderLeft();
-      renderGrid();
-    };
-    reader.readAsDataURL(file);
+
+    if (card.media_type === 'video') {
+      // Auto-detect video duration
+      const tempUrl = URL.createObjectURL(file);
+      const tempVid = document.createElement('video');
+      tempVid.preload = 'metadata';
+      tempVid.src = tempUrl;
+      tempVid.onloadedmetadata = () => {
+        const durationMs = Math.ceil(tempVid.duration * 1000);
+        card.duration_ms = durationMs;
+        card.localPreview = tempUrl;
+        // Update the duration input
+        const durInput = document.getElementById('card-duration');
+        if (durInput) durInput.value = Math.round(durationMs / 1000);
+        renderLeft();
+        renderGrid();
+      };
+      tempVid.onerror = () => {
+        card.localPreview = '';
+        renderLeft();
+        renderGrid();
+      };
+    } else {
+      // Image — preview via FileReader
+      const reader = new FileReader();
+      reader.onload = ev => {
+        card.localPreview = ev.target.result;
+        renderLeft();
+        renderGrid();
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
-  // Save duration when changed
+  // Save duration when changed manually
   document.getElementById('card-duration').addEventListener('change', e => {
     const secs = parseInt(e.target.value) || 9;
-    card.duration_ms = Math.max(3, Math.min(60, secs)) * 1000;
+    card.duration_ms = Math.max(3, Math.min(300, secs)) * 1000;
   });
 }
 
@@ -248,6 +290,17 @@ export function setShape(shape) {
   renderGrid();
 }
 
+/* ── SET MEDIA TYPE (for current card) ───────────── */
+export function setMediaType(type) {
+  if (!cards[currentIndex]) return;
+  cards[currentIndex].media_type = type;
+  // Reset preview and pending file when switching type
+  cards[currentIndex].localPreview = '';
+  delete pendingCardFiles[cards[currentIndex].id];
+  renderLeft();
+  renderGrid();
+}
+
 /* ── NAV ─────────────────────────────────────────── */
 export function navPrev() {
   if (currentIndex > 0) { currentIndex--; renderLeft(); renderGrid(); }
@@ -288,14 +341,15 @@ export async function saveShowcaseHandler() {
   showStatus('Uploading cards...', 'info');
 
   try {
-    /* 1. Upload new card images */
+    /* 1. Upload new card media (image or video) */
     for (let i = 0; i < cards.length; i++) {
-      const card = cards[i];
-      const file = pendingCardFiles[card.id];
-      if (!file) continue; // already in R2 or no image
+      const card    = cards[i];
+      const file    = pendingCardFiles[card.id];
+      if (!file) continue;
 
       const ext      = file.name.split('.').pop().toLowerCase();
       const filename = `card-${String(i + 1).padStart(3, '0')}.${ext}`;
+      const isVideo  = card.media_type === 'video';
 
       const res = await fetch(`${WORKER_URL}/card/${currentSlug}/${filename}`, {
         method: 'PUT',
@@ -305,8 +359,14 @@ export async function saveShowcaseHandler() {
       if (!res.ok) throw new Error(`Card ${i + 1} upload failed`);
       const { public_url } = await res.json();
 
-      card.image_url = public_url;
-      card.r2_key    = `CardShowcase/${currentSlug}/${filename}`;
+      if (isVideo) {
+        card.media_url = public_url;
+        card.image_url = '';
+      } else {
+        card.image_url = public_url;
+        card.media_url = '';
+      }
+      card.r2_key = `CardShowcase/${currentSlug}/${filename}`;
       delete pendingCardFiles[card.id];
     }
 
@@ -359,7 +419,9 @@ export async function saveShowcaseHandler() {
       cards: cards.map((c, i) => ({
         id:          i + 1,
         shape:       c.shape,
-        image_url:   c.image_url,
+        media_type:  c.media_type || 'image',
+        image_url:   c.image_url  || '',
+        media_url:   c.media_url  || '',
         r2_key:      c.r2_key,
         duration_ms: c.duration_ms || 9000,
       })),
