@@ -68,6 +68,19 @@ export async function saveShowcase(row) {
   return { data, error };
 }
 
+/* ── Update cover URL only (used by landing-upload) ─── */
+// Keeps Supabase in sync when the cover is replaced via the landing upload tool
+// without going through the full builder save flow.
+export async function updateShowcaseCoverUrl(slug, coverUrl) {
+  const { error } = await supabase
+    .from('card_showcases')
+    .update({ cover_url: coverUrl, updated_at: new Date().toISOString() })
+    .eq('showcase_slug', slug);
+
+  if (error) console.error('supabaseAPI.updateShowcaseCoverUrl:', error.message);
+  return { error };
+}
+
 /* ── Delete showcase ────────────────────────────────── */
 export async function deleteShowcase(slug) {
   const { error } = await supabase
