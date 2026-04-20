@@ -401,16 +401,22 @@
       ambientAudio.load();
       musicBtn.style.display = 'flex';
 
-      // Attempt autoplay — works when user arrived via click (BEGIN on consent)
+      // Consent page primed the audio using the button-click gesture.
+      // Start muted (browser always allows this), unmute immediately once
+      // play() resolves — desktop and mobile both work via this path.
+      ambientAudio.muted = true;
+      sessionStorage.removeItem('audioConsented');
       const playResult = ambientAudio.play();
       if (playResult !== undefined) {
         playResult
           .then(() => {
+            ambientAudio.muted = false; // unmute — playback already running
             ambientPlaying = true;
             setMusicBtnState('playing');
           })
           .catch(() => {
-            // Browser blocked autoplay — wait for first interaction
+            // Fallback: wait for first interaction
+            ambientAudio.muted = false;
             ambientPlaying = false;
             setMusicBtnState('muted');
             document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
