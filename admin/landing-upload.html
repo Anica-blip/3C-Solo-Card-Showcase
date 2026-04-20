@@ -381,7 +381,7 @@
   </footer>
 
 <script type="module">
-  import { fetchAllShowcases } from './supabaseAPI.js';
+  import { fetchAllShowcases, updateShowcaseCoverUrl } from './supabaseAPI.js';
 
   const WORKER_URL = window.APP_CONFIG?.WORKER_URL || 'https://3c-card-showcase.3c-innertherapy.workers.dev';
 
@@ -459,13 +459,13 @@
 
     const ext = selectedFile.name.split('.').pop().toLowerCase();
 
-    setStatus('loading', 'Step 1 of 2 — Uploading cover image to R2…');
+    setStatus('loading', 'Step 1 of 3 — Uploading cover image to R2…');
     showProgress(true);
     document.getElementById('btnUpload').disabled        = true;
     document.getElementById('resultBlock').style.display = 'none';
 
     try {
-      animateProgress(0, 50, 800);
+      animateProgress(0, 40, 800);
 
       /* PUT /cover/:slug */
       const uploadRes = await fetch(`${WORKER_URL}/cover/${slug}`, {
@@ -484,15 +484,18 @@
 
       const { public_url, r2_key } = await uploadRes.json();
 
-      setStatus('loading', 'Step 2 of 2 — Updating showcase JSON with cover URL…');
-      animateProgress(50, 80, 400);
+      // Cache-bust so Cloudflare CDN serves the fresh image, not a cached old one
+      const coverUrl = `${public_url}?v=${Date.now()}`;
+
+      setStatus('loading', 'Step 2 of 3 — Updating showcase JSON with cover URL…');
+      animateProgress(40, 70, 400);
 
       /* Fetch existing showcase JSON, patch cover_url, re-save */
       const getRes = await fetch(`${WORKER_URL}/showcase/${slug}`);
       if (!getRes.ok) throw new Error(`Could not fetch showcase JSON (${getRes.status})`);
       const showcaseJson = await getRes.json();
 
-      showcaseJson.cover_url = public_url;
+      showcaseJson.cover_url = coverUrl;
 
       const saveRes = await fetch(`${WORKER_URL}/showcase/${slug}`, {
         method:  'PUT',
@@ -502,12 +505,20 @@
 
       if (!saveRes.ok) throw new Error(`Showcase JSON update failed (${saveRes.status})`);
 
-      animateProgress(80, 100, 300);
+      setStatus('loading', 'Step 3 of 3 — Syncing cover URL to Supabase…');
+      animateProgress(70, 90, 300);
+
+      // FIX: also update Supabase so the builder never overwrites this
+      // with a stale cover_url when the showcase is loaded for editing
+      const { error: sbError } = await updateShowcaseCoverUrl(slug, coverUrl);
+      if (sbError) throw new Error(`Supabase sync failed: ${sbError.message}`);
+
+      animateProgress(90, 100, 200);
 
       setTimeout(() => {
         showProgress(false);
-        setStatus('success', `Done! Cover saved + showcase JSON updated.\nFile: ${r2_key}`);
-        document.getElementById('resultUrl').value          = public_url;
+        setStatus('success', `Done! Cover saved, JSON updated, Supabase synced.\nFile: ${r2_key}`);
+        document.getElementById('resultUrl').value          = coverUrl;
         document.getElementById('resultBlock').style.display = 'flex';
         document.getElementById('btnUpload').disabled        = false;
       }, 350);
