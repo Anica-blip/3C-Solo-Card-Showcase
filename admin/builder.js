@@ -386,7 +386,9 @@ export async function saveShowcaseHandler() {
       });
       if (!res.ok) throw new Error('Cover upload failed');
       const { public_url } = await res.json();
-      coverUrl = public_url;
+      // Cache-bust + keep module state in sync so subsequent saves don't revert
+      coverUrl = `${public_url}?v=${Date.now()}`;
+      _savedCoverUrl = coverUrl;
       pendingCoverFile = null;
     }
 
@@ -406,7 +408,9 @@ export async function saveShowcaseHandler() {
       });
       if (!res.ok) throw new Error('Music upload failed');
       const { public_url } = await res.json();
+      // Keep module state in sync so subsequent saves don't revert
       musicUrl = public_url;
+      _savedMusicUrl = musicUrl;
       pendingMusicFile = null;
     }
 
@@ -485,12 +489,16 @@ export async function editShowcase(slug) {
   if (error || !data) { showStatus('Could not load showcase.', 'error'); return; }
 
   currentSlug  = slug;
+  // FIX: map media_type and media_url — previously missing, caused video cards
+  // to silently revert to image type and lose their media_url on every re-save
   cards        = (data.cards || []).map(c => ({
     id:           c.id || Date.now() + Math.random(),
-    shape:        c.shape || 'rectangle',
-    image_url:    c.image_url || '',
-    r2_key:       c.r2_key || '',
-    duration_ms:  c.duration_ms || 9000,
+    shape:        c.shape        || 'rectangle',
+    media_type:   c.media_type   || 'image',
+    image_url:    c.image_url    || '',
+    media_url:    c.media_url    || '',
+    r2_key:       c.r2_key       || '',
+    duration_ms:  c.duration_ms  || 9000,
     localPreview: '',
   }));
   currentIndex     = 0;
