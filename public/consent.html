@@ -292,6 +292,24 @@
   window.beginShowcase = function() {
     const slug = getSlug();
     if (!slug) { location.href = LANDING_PAGE; return; }
+
+    // Use this button-click gesture to prime audio autoplay for desktop.
+    // Start the music file muted — this registers user intent with the browser
+    // so index.html can unmute and resume it without being blocked.
+    try {
+      const cached = sessionStorage.getItem('showcaseData');
+      if (cached) {
+        const d = JSON.parse(cached);
+        if (d.ambient_music_url) {
+          const primer = new Audio();
+          primer.muted = true;
+          primer.src   = d.ambient_music_url;
+          primer.play().catch(() => {});
+          sessionStorage.setItem('audioConsented', '1');
+        }
+      }
+    } catch(_) {}
+
     // sessionStorage data stays for viewer
     location.href = `${VIEWER_PAGE}?showcase=${encodeURIComponent(slug)}`;
   };
