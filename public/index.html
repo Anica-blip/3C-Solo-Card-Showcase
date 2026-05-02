@@ -417,11 +417,13 @@
 
     /* ── AMBIENT MUSIC SETUP ── */
     if (data.ambient_music_url) {
-      hasAmbient     = true;
+      hasAmbient       = true;
       ambientAudio.src = data.ambient_music_url;
       ambientAudio.load();
       musicBtn.style.display = 'flex';
 
+      // READ the consent flag FIRST, then clear it
+      const userConsented = sessionStorage.getItem('audioConsented') === '1';
       sessionStorage.removeItem('audioConsented');
 
       // Helper: attempt play and update UI state
@@ -432,19 +434,25 @@
         });
       }
 
-      // 1st attempt: immediate (mobile consent-page gesture carries through navigation)
-      tryPlayAmbientNow().catch(() => {
-        // 2nd attempt: after 1 second (desktop browsers sometimes need a moment
-        // after page navigation before honouring the prior gesture context)
-        setTimeout(() => {
-          tryPlayAmbientNow().catch(() => {
-            // Final fallback: wait for first user interaction on this page
-            ambientPlaying = false;
-            setMusicBtnState('muted');
-            document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
-          });
-        }, 1000);
-      });
+      if (userConsented) {
+        // Consent page "Begin" click is the user gesture.
+        // Play immediately — no retry needed on any platform.
+        tryPlayAmbientNow().catch(() => {
+          // Gesture didn't transfer (strict desktop policy) — 1s retry
+          setTimeout(() => {
+            tryPlayAmbientNow().catch(() => {
+              ambientPlaying = false;
+              setMusicBtnState('muted');
+              document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
+            });
+          }, 1000);
+        });
+      } else {
+        // No consent flag (direct URL visit) — wait for first click
+        ambientPlaying = false;
+        setMusicBtnState('muted');
+        document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
+      }
     }
 
     hideLoading();
@@ -593,7 +601,7 @@
     const video       = document.createElement('video');
     video.src         = card.media_url || card.video_url || '';
     video.autoplay    = true;
-    video.muted       = false;
+    video.muted       = true;   // start muted — passes all browser autoplay policies
     video.playsInline = true;
     video.controls    = false;
     video.preload     = 'auto';
@@ -628,10 +636,12 @@
       showCard(idx + 1);
     }, { once: true });
 
-    // ── AUTOPLAY BLOCKED ──
-    // play() promise rejection (e.g. strict browser policy).
-    // Skip to next card after a brief pause.
-    video.play().catch(() => {
+    // ── PLAY — start muted, unmute immediately after playback begins ──
+    // Muted autoplay is universally allowed. Unmuting after play() resolves
+    // is also allowed because the user already consented on the consent page.
+    video.play().then(() => {
+      video.muted = false;
+    }).catch(() => {
       if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
       setTimeout(() => showCard(idx + 1), 500);
     });
