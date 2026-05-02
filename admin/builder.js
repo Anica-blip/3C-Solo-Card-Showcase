@@ -1,7 +1,7 @@
 /**
  * 3C Card Showcase — Admin Builder
  * ─────────────────────────────────────────────────────────────
- * Built by Claude (Anthropic) × Chef Anica · 3C Thread To Success
+ * Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success Cooking Lab 🧪👨‍🍳
  *
  * State:
  *   cards[]       — array of card objects (local + saved)
@@ -21,7 +21,7 @@ import {
 } from './supabaseAPI.js';
 
 /* ── STATE ──────────────────────────────────────── */
-let cards        = [];   // { id, shape, image_url, r2_key, localPreview }
+let cards        = [];   // { id, shape, media_type, image_url, media_url, r2_key, localPreview }
 let currentIndex = 0;
 let currentSlug  = null;
 let archive      = [];
@@ -79,14 +79,28 @@ function updateSlugDisplay() {
 function renderLeft() {
   const card = cards[currentIndex];
 
-  // Large preview
+  // Large preview — supports both image and video cards
   const wrap = document.getElementById('card-preview-large');
   wrap.className = 'card-preview-large' + (card ? ` shape-${card.shape}` : '');
+
   if (card) {
-    const src = card.localPreview || card.image_url || '';
-    wrap.innerHTML = src
-      ? `<img src="${src}" alt="Card ${currentIndex + 1}" />`
-      : `<div class="card-preview-empty">No image<br/>Upload below</div>`;
+    const isVideo  = card.media_type === 'video';
+    const videoSrc = card.localPreview || card.media_url || '';
+    const imgSrc   = card.localPreview || card.image_url || '';
+
+    if (isVideo && videoSrc) {
+      wrap.innerHTML = `
+        <video src="${videoSrc}" preload="metadata" muted playsinline
+          style="max-width:100%;max-height:100%;object-fit:contain;
+                 border-radius:8px;display:block;"></video>`;
+    } else if (!isVideo && imgSrc) {
+      wrap.innerHTML = `<img src="${imgSrc}" alt="Card ${currentIndex + 1}" />`;
+    } else {
+      wrap.innerHTML = `
+        <div class="card-preview-empty">
+          No ${isVideo ? 'video' : 'image'}<br/>Upload below
+        </div>`;
+    }
   } else {
     wrap.innerHTML = `<div class="card-preview-empty">No cards yet<br/>Click + Add</div>`;
   }
@@ -197,7 +211,7 @@ function renderLeft() {
   });
 }
 
-/* ── RIGHT PANEL ─────────────────────────────────── */
+/* ── RIGHT PANEL (Card Grid) ────────────────────── */
 function renderGrid() {
   const grid = document.getElementById('card-grid');
 
@@ -215,19 +229,52 @@ function renderGrid() {
 
   grid.innerHTML = '';
   cards.forEach((card, idx) => {
-    const src  = card.localPreview || card.image_url || '';
+    const isVideo  = card.media_type === 'video';
+    const videoSrc = card.localPreview || card.media_url || '';
+    const imgSrc   = card.localPreview || card.image_url || '';
     const isSelected = idx === currentIndex;
 
     const div = document.createElement('div');
     div.className = `grid-card${isSelected ? ' selected' : ''}`;
-    div.title = `Card ${idx + 1} — click to select`;
+    div.title = `Card ${idx + 1}${isVideo ? ' · VIDEO' : ''} — click to select`;
+
+    // Build the thumbnail section based on media type
+    let thumbHtml;
+    if (isVideo) {
+      if (videoSrc) {
+        // Video with source — show first frame via <video preload="metadata">
+        thumbHtml = `
+          <div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:6px;">
+            <video src="${videoSrc}" preload="metadata" muted playsinline
+              style="width:100%;height:100%;object-fit:cover;display:block;
+                     pointer-events:none;border-radius:6px;"></video>
+            <span style="position:absolute;bottom:4px;left:4px;
+              background:rgba(0,0,0,0.72);color:#E2C98A;
+              font-size:8px;font-weight:700;letter-spacing:0.07em;
+              padding:2px 5px;border-radius:3px;text-transform:uppercase;
+              line-height:1.4;">▶ VIDEO</span>
+          </div>`;
+      } else {
+        // Video card with no file yet
+        thumbHtml = `
+          <div class="grid-card-empty shape-${card.shape}"
+            style="display:flex;flex-direction:column;align-items:center;
+                   justify-content:center;gap:3px;height:100%;">
+            <span style="font-size:18px;opacity:0.6;">▶</span>
+            <span style="font-size:8px;opacity:0.4;letter-spacing:0.05em;
+                         text-transform:uppercase;">No video</span>
+          </div>`;
+      }
+    } else {
+      // Image card
+      thumbHtml = imgSrc
+        ? `<img class="grid-card-thumb shape-${card.shape}" src="${imgSrc}" alt="Card ${idx + 1}" />`
+        : `<div class="grid-card-empty shape-${card.shape}">&#9635;</div>`;
+    }
 
     div.innerHTML = `
       <span class="card-number">${idx + 1}</span>
-      ${src
-        ? `<img class="grid-card-thumb shape-${card.shape}" src="${src}" alt="Card ${idx + 1}" />`
-        : `<div class="grid-card-empty shape-${card.shape}">&#9635;</div>`
-      }
+      ${thumbHtml}
       <div class="card-reorder">
         <button class="reorder-btn" title="Move up"
           onclick="event.stopPropagation();window._builder.moveCard(${idx},'up')">&#8679;</button>
@@ -251,7 +298,8 @@ function renderGrid() {
 /* ── ADD CARD ────────────────────────────────────── */
 export function addCard() {
   const id = Date.now();
-  cards.push({ id, shape: 'rectangle', image_url: '', r2_key: '', localPreview: '' });
+  // media_type defaults to 'image' — must be set here so renderGrid always has it
+  cards.push({ id, shape: 'rectangle', media_type: 'image', image_url: '', media_url: '', r2_key: '', localPreview: '' });
   currentIndex = cards.length - 1;
   renderLeft();
   renderGrid();
