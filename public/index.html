@@ -633,18 +633,22 @@
     if (shape === 'rectangle') {
       /* ── SWIPE MODE ─────────────────────────────────
          Slide in from right, hold for cardMs, slide out to left.
-         Consistent with video full-screen experience.
+         Both timers stored in cardTimer so either can be
+         cancelled cleanly — prevents card skip / double-show.
       ─────────────────────────────────────────────── */
       el.style.animation = `swipeInFromRight ${ENTER_MS}ms ease forwards`;
 
       cardTimer = setTimeout(() => {
         el.style.animation = `swipeOutToLeft ${EXIT_MS}ms ease forwards`;
-        setTimeout(() => showCard(idx + 1), EXIT_MS);
+        // Overwrite cardTimer with the exit animation timer —
+        // now showCard()'s clearTimeout at the top catches it too
+        cardTimer = setTimeout(() => showCard(idx + 1), EXIT_MS);
       }, cardMs);
 
     } else {
       /* ── FLOAT MODE ─────────────────────────────────
          Original tilt + float for square / circle cards.
+         Same fix applied — inner timer overwrites cardTimer.
       ─────────────────────────────────────────────── */
       const fromLeft = idx % 2 === 0;
       const floatMs  = Math.max(500, cardMs - ENTER_MS - EXIT_MS);
@@ -659,7 +663,7 @@
 
       cardTimer = setTimeout(() => {
         el.style.animation = `${fromLeft ? 'exitToRight' : 'exitToLeft'} ${EXIT_MS}ms ease forwards`;
-        setTimeout(() => showCard(idx + 1), EXIT_MS);
+        cardTimer = setTimeout(() => showCard(idx + 1), EXIT_MS);
       }, ENTER_MS + floatMs);
     }
   }
