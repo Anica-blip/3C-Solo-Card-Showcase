@@ -76,7 +76,7 @@
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* ── IMAGE CARD ── */
+    /* ── IMAGE CARD BASE ── */
     .showcase-card {
       position: absolute;
       display: flex; align-items: center; justify-content: center;
@@ -87,14 +87,20 @@
       object-fit: contain; display: block;
       box-shadow: 0 10px 50px rgba(0,0,0,0.7);
     }
-    .showcase-card.shape-rectangle { width: 42%; height: 85%; }
-    .showcase-card.shape-rectangle img { border-radius: 10px; }
-    .showcase-card.shape-square    { width: 60%; height: 85%; }
-    .showcase-card.shape-square img { border-radius: 10px; }
-    .showcase-card.shape-circle    { width: 50%; height: 85%; }
-    .showcase-card.shape-circle img { border-radius: 50%; aspect-ratio: 1/1; object-fit: cover; }
 
-    /* ── VIDEO CARD ── fills the screen ── */
+    /* ── RECTANGLE — full-screen, swipe mode ── */
+    .showcase-card.shape-rectangle         { inset: 0; width: 100%; height: 100%; }
+    .showcase-card.shape-rectangle img     { width: 100%; height: 100%;
+                                             object-fit: contain; border-radius: 0;
+                                             box-shadow: none; }
+
+    /* ── SQUARE / CIRCLE — keep float mode ── */
+    .showcase-card.shape-square            { width: 60%; height: 85%; }
+    .showcase-card.shape-square img        { border-radius: 10px; }
+    .showcase-card.shape-circle            { width: 50%; height: 85%; }
+    .showcase-card.shape-circle img        { border-radius: 50%; aspect-ratio: 1/1; object-fit: cover; }
+
+    /* ── VIDEO CARD — full-screen ── */
     .showcase-video {
       position: absolute; inset: 0; z-index: 2;
       display: flex; align-items: center; justify-content: center;
@@ -140,7 +146,7 @@
       color: rgba(196,181,245,0.6); letter-spacing: 0.1em; z-index: 6;
     }
 
-    /* ── ANIMATIONS ── */
+    /* ── FLOAT ANIMATIONS (square / circle) ── */
     @keyframes enterFromLeft {
       0%   { opacity: 0; transform: translateX(-55%) rotate(-8deg); }
       100% { opacity: 1; transform: translateX(0)    rotate(-2deg); }
@@ -165,6 +171,17 @@
       0%   { opacity: 1; transform: translateX(0)    rotate(2deg); }
       100% { opacity: 0; transform: translateX(-55%) rotate(8deg); }
     }
+
+    /* ── SWIPE ANIMATIONS (rectangle full-screen) ── */
+    @keyframes swipeInFromRight {
+      0%   { opacity: 0; transform: translateX(100%); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes swipeOutToLeft {
+      0%   { opacity: 1; transform: translateX(0); }
+      100% { opacity: 0; transform: translateX(-100%); }
+    }
+
     @keyframes endPulse {
       0%,100% { box-shadow: 0 0 10px rgba(226,201,138,0.4), 0 0 20px rgba(200,169,110,0.2); border-color: rgba(226,201,138,0.5); }
       50%      { box-shadow: 0 0 22px rgba(226,201,138,0.9), 0 0 44px rgba(200,169,110,0.6); border-color: rgba(226,201,138,0.9); }
@@ -219,7 +236,7 @@
       box-shadow: 0 0 10px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
     }
 
-    /* Music PLAYING — gold glow, highlighted */
+    /* Music PLAYING — gold glow */
     .bezel-btn.music-playing {
       background: linear-gradient(135deg, rgba(200,169,110,0.25), rgba(226,201,138,0.15));
       border-color: rgba(226,201,138,0.7);
@@ -230,6 +247,7 @@
         inset 0 1px 0 rgba(255,255,255,0.1);
       animation: musicPulse 2.4s ease-in-out infinite;
     }
+
     /* Music MUTED — dim */
     .bezel-btn.music-muted {
       background: rgba(20,20,35,0.6);
@@ -237,6 +255,7 @@
       color: rgba(140,140,170,0.35);
       box-shadow: none;
     }
+
     /* Exit highlight at end */
     .bezel-btn.exit-highlight {
       animation: endPulse 1.2s ease-in-out infinite;
@@ -248,7 +267,7 @@
       50%      { box-shadow: 0 0 18px rgba(226,201,138,0.7), 0 0 36px rgba(200,169,110,0.4); }
     }
 
-    /* ── LOADING / ERROR / END ── */
+    /* ── LOADING / ERROR / END STATES ── */
     #loadingState, #errorState, #endState {
       position: absolute; inset: 0; z-index: 20;
       display: flex; flex-direction: column;
@@ -260,7 +279,7 @@
       font-size: 0.82rem; letter-spacing: 0.14em;
       animation: pulse 1.8s ease-in-out infinite;
     }
-    #errorState { background: #050510; display: none; color: rgba(196,181,245,0.6); font-size: 0.8rem; }
+    #errorState  { background: #050510; display: none; color: rgba(196,181,245,0.6); font-size: 0.8rem; }
     #errorState strong { color: #a855f7; font-size: 0.9rem; display: block; }
     #endState {
       background: rgba(5,5,16,0.92); display: none;
@@ -342,11 +361,11 @@
 /* ═══════════════════════════════════════════════════
    public/index.html — 3C Card Showcase TV Viewer
    ────────────────────────────────────────────────────
-   Supports: image cards + video cards
-   Video cards: pause ambient music, play video audio,
-                resume ambient when video ends
-   Music button: gold glow = playing, dim = muted
-   Built by Claude (Anthropic) × Chef Anica · Anica-Blip
+   Rectangle cards : full-screen swipe (swipeInFromRight / swipeOutToLeft)
+   Square / Circle : original tilt + float animation
+   Video cards     : full-screen, ambient music plays alongside
+   Ambient music   : immediate play attempt → 1s retry (desktop) → click fallback
+   Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success Cooking Lab 🧪👨‍🍳
 ═══════════════════════════════════════════════════ */
 
   const WORKER_URL      = 'https://3c-card-showcase.3c-innertherapy.workers.dev';
@@ -354,13 +373,13 @@
   const ENTER_MS        = 800;
   const EXIT_MS         = 800;
 
-  let cards         = [];
-  let currentIdx    = 0;
-  let isRunning     = false;
-  let ambientPlaying = false;  // true = ambient music is currently audible
-  let hasAmbient    = false;
-  let exitTarget    = '../index.html';
-  let cardTimer     = null;
+  let cards          = [];
+  let currentIdx     = 0;
+  let isRunning      = false;
+  let ambientPlaying = false;   // true = music is currently audible
+  let hasAmbient     = false;
+  let exitTarget     = '../index.html';
+  let cardTimer      = null;
 
   const ambientAudio = document.getElementById('ambient-audio');
   const musicBtn     = document.getElementById('btn-music');
@@ -369,7 +388,9 @@
     return new URLSearchParams(location.search).get('showcase');
   }
 
-  /* ── INIT ── */
+  /* ══════════════════════════════════════════════════
+     INIT
+  ══════════════════════════════════════════════════ */
   async function init() {
     const slug = getSlug();
     if (!slug) { showError(); return; }
@@ -394,30 +415,36 @@
     document.getElementById('bezel-title').textContent = data.title || '3C Card Showcase';
     exitTarget = `../landing.html?showcase=${encodeURIComponent(slug)}`;
 
-    /* ── Set up ambient music ── */
+    /* ── AMBIENT MUSIC SETUP ── */
     if (data.ambient_music_url) {
-      hasAmbient = true;
+      hasAmbient     = true;
       ambientAudio.src = data.ambient_music_url;
       ambientAudio.load();
       musicBtn.style.display = 'flex';
 
-      // Consent page Begin button already registered the user gesture.
-      // Plain play() — no muted trick needed, gesture context carries through.
       sessionStorage.removeItem('audioConsented');
-      const playResult = ambientAudio.play();
-      if (playResult !== undefined) {
-        playResult
-          .then(() => {
-            ambientPlaying = true;
-            setMusicBtnState('playing');
-          })
-          .catch(() => {
-            // Fallback: wait for first interaction
+
+      // Helper: attempt play and update UI state
+      function tryPlayAmbientNow() {
+        return ambientAudio.play().then(() => {
+          ambientPlaying = true;
+          setMusicBtnState('playing');
+        });
+      }
+
+      // 1st attempt: immediate (mobile consent-page gesture carries through navigation)
+      tryPlayAmbientNow().catch(() => {
+        // 2nd attempt: after 1 second (desktop browsers sometimes need a moment
+        // after page navigation before honouring the prior gesture context)
+        setTimeout(() => {
+          tryPlayAmbientNow().catch(() => {
+            // Final fallback: wait for first user interaction on this page
             ambientPlaying = false;
             setMusicBtnState('muted');
             document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
           });
-      }
+        }, 1000);
+      });
     }
 
     hideLoading();
@@ -432,15 +459,15 @@
     }).catch(() => {});
   }
 
-  /* ── MUSIC BUTTON STATE ── */
+  /* ══════════════════════════════════════════════════
+     MUSIC CONTROLS
+  ══════════════════════════════════════════════════ */
   function setMusicBtnState(state) {
-    // state: 'playing' | 'muted' | 'hidden'
     musicBtn.classList.remove('music-playing', 'music-muted');
     if (state === 'playing') musicBtn.classList.add('music-playing');
     if (state === 'muted')   musicBtn.classList.add('music-muted');
   }
 
-  /* ── TOGGLE MUSIC (user button) ── */
   function toggleMusic() {
     if (!hasAmbient) return;
     if (ambientPlaying) {
@@ -455,21 +482,9 @@
   }
   window.toggleMusic = toggleMusic;
 
-  /* ── PAUSE / RESUME AMBIENT (for video cards) ── */
-  function pauseAmbient() {
-    if (hasAmbient && ambientPlaying) {
-      ambientAudio.pause();
-      // Don't change ambientPlaying flag — it resumes after video
-    }
-  }
-
-  function resumeAmbient() {
-    if (hasAmbient && ambientPlaying) {
-      ambientAudio.play().catch(() => {});
-    }
-  }
-
-  /* ── SHOWCASE RUNNER ── */
+  /* ══════════════════════════════════════════════════
+     SHOWCASE RUNNER
+  ══════════════════════════════════════════════════ */
   function runShowcase() {
     isRunning = true;
     showCard(0);
@@ -479,32 +494,37 @@
     if (idx >= cards.length) { endShowcase(); return; }
     currentIdx = idx;
 
-    const card       = cards[idx];
-    const totalCards = cards.length;
-    const mediaType  = card.media_type || 'image'; // 'image' | 'video'
+    // Always clear any lingering timer from the previous card
+    if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
 
-    // Update counter + progress
-    document.getElementById('card-counter').textContent = `${idx + 1} \u2022 ${totalCards}`;
-    document.getElementById('progress-bar').style.width = `${((idx + 1) / totalCards) * 100}%`;
+    const card      = cards[idx];
+    const mediaType = card.media_type || 'image';
+
+    document.getElementById('card-counter').textContent = `${idx + 1} \u2022 ${cards.length}`;
+    document.getElementById('progress-bar').style.width = `${((idx + 1) / cards.length) * 100}%`;
 
     const stage = document.getElementById('card-stage');
     stage.innerHTML = '';
 
     if (mediaType === 'video') {
-      showVideoCard(idx, card, stage, totalCards);
+      showVideoCard(idx, card, stage);
     } else {
-      showImageCard(idx, card, stage, totalCards);
+      showImageCard(idx, card, stage);
     }
   }
 
-  /* ── IMAGE CARD ── */
-  function showImageCard(idx, card, stage, totalCards) {
-    const fromLeft = idx % 2 === 0;
-    const cardMs   = (card.duration_ms && card.duration_ms > 0) ? card.duration_ms : DEFAULT_CARD_MS;
-    const floatMs  = cardMs - ENTER_MS - EXIT_MS;
+  /* ══════════════════════════════════════════════════
+     IMAGE CARD
+     - shape-rectangle : full-screen swipe left/right
+     - shape-square    : tilt + float (original)
+     - shape-circle    : tilt + float (original)
+  ══════════════════════════════════════════════════ */
+  function showImageCard(idx, card, stage) {
+    const shape  = card.shape || 'rectangle';
+    const cardMs = (card.duration_ms && card.duration_ms > 0) ? card.duration_ms : DEFAULT_CARD_MS;
 
-    const el  = document.createElement('div');
-    el.className = `showcase-card shape-${card.shape || 'rectangle'}`;
+    const el = document.createElement('div');
+    el.className = `showcase-card shape-${shape}`;
 
     const img     = document.createElement('img');
     img.src       = card.image_url || card.media_url || '';
@@ -522,71 +542,104 @@
 
     stage.appendChild(el);
 
-    // Phase 1: Enter
-    el.style.animation = `${fromLeft ? 'enterFromLeft' : 'enterFromRight'} ${ENTER_MS}ms ease forwards`;
+    if (shape === 'rectangle') {
+      /* ── SWIPE MODE ─────────────────────────────────
+         Slide in from right, hold for cardMs, slide out to left.
+         Consistent with video full-screen experience.
+      ─────────────────────────────────────────────── */
+      el.style.animation = `swipeInFromRight ${ENTER_MS}ms ease forwards`;
 
-    // Phase 2: Float
-    setTimeout(() => {
-      el.style.animation = `${fromLeft ? 'floatLeft' : 'floatRight'} ${floatMs}ms ease-in-out infinite`;
-      el.style.opacity   = '1';
-      el.style.transform = `rotate(${fromLeft ? '-2deg' : '2deg'})`;
-    }, ENTER_MS);
+      cardTimer = setTimeout(() => {
+        el.style.animation = `swipeOutToLeft ${EXIT_MS}ms ease forwards`;
+        setTimeout(() => showCard(idx + 1), EXIT_MS);
+      }, cardMs);
 
-    // Phase 3: Exit → next
-    cardTimer = setTimeout(() => {
-      el.style.animation = `${fromLeft ? 'exitToRight' : 'exitToLeft'} ${EXIT_MS}ms ease forwards`;
-      setTimeout(() => showCard(idx + 1), EXIT_MS);
-    }, ENTER_MS + floatMs);
+    } else {
+      /* ── FLOAT MODE ─────────────────────────────────
+         Original tilt + float for square / circle cards.
+      ─────────────────────────────────────────────── */
+      const fromLeft = idx % 2 === 0;
+      const floatMs  = Math.max(500, cardMs - ENTER_MS - EXIT_MS);
+
+      el.style.animation = `${fromLeft ? 'enterFromLeft' : 'enterFromRight'} ${ENTER_MS}ms ease forwards`;
+
+      setTimeout(() => {
+        el.style.animation = `${fromLeft ? 'floatLeft' : 'floatRight'} ${floatMs}ms ease-in-out infinite`;
+        el.style.opacity   = '1';
+        el.style.transform = `rotate(${fromLeft ? '-2deg' : '2deg'})`;
+      }, ENTER_MS);
+
+      cardTimer = setTimeout(() => {
+        el.style.animation = `${fromLeft ? 'exitToRight' : 'exitToLeft'} ${EXIT_MS}ms ease forwards`;
+        setTimeout(() => showCard(idx + 1), EXIT_MS);
+      }, ENTER_MS + floatMs);
+    }
   }
 
-  /* ── VIDEO CARD ── */
-  function showVideoCard(idx, card, stage, totalCards) {
-    // Pause ambient music — video has its own audio
-    pauseAmbient();
+  /* ══════════════════════════════════════════════════
+     VIDEO CARD
+     - Ambient music continues playing (not paused)
+     - Safety timer starts ONLY from 'playing' event
+       so buffering delay never eats into display time
+     - 5-second buffer added to fallback timeout
+     - 'ended' clears fallback timer to prevent replay
+  ══════════════════════════════════════════════════ */
+  function showVideoCard(idx, card, stage) {
+    // Ambient music intentionally keeps playing alongside video audio
 
     const wrap = document.createElement('div');
     wrap.className = 'showcase-video';
 
-    const video         = document.createElement('video');
-    video.src           = card.media_url || card.video_url || '';
-    video.autoplay      = true;
-    video.muted         = false; // video audio plays
-    video.playsInline   = true;
-    video.controls      = false;
+    const video       = document.createElement('video');
+    video.src         = card.media_url || card.video_url || '';
+    video.autoplay    = true;
+    video.muted       = false;
+    video.playsInline = true;
+    video.controls    = false;
+    video.preload     = 'auto';
     video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
 
     wrap.appendChild(video);
     stage.appendChild(wrap);
 
-    // When video ends → resume ambient → next card
+    // ── SAFETY-NET TIMER ──
+    // Starts only after video is actually rendering frames ('playing' event).
+    // Buffering time does NOT count against the video's runtime.
+    // 5-second buffer beyond detected length so no video gets cut short.
+    video.addEventListener('playing', () => {
+      if (card.duration_ms && card.duration_ms > 0) {
+        cardTimer = setTimeout(() => {
+          video.pause();
+          showCard(idx + 1);
+        }, card.duration_ms + 5000);
+      }
+    }, { once: true });
+
+    // ── NATURAL END ──
+    // Clear fallback timer first — prevents double-advance (replay bug).
     video.addEventListener('ended', () => {
-      resumeAmbient();
+      if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
       showCard(idx + 1);
     }, { once: true });
 
-    // Fallback: if video fails to play
+    // ── LOAD / DECODE ERROR ──
     video.addEventListener('error', () => {
-      resumeAmbient();
+      if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
       showCard(idx + 1);
     }, { once: true });
 
-    // If duration_ms is manually set, use it as a max timeout fallback
-    if (card.duration_ms && card.duration_ms > 0) {
-      cardTimer = setTimeout(() => {
-        video.pause();
-        resumeAmbient();
-        showCard(idx + 1);
-      }, card.duration_ms);
-    }
-
+    // ── AUTOPLAY BLOCKED ──
+    // play() promise rejection (e.g. strict browser policy).
+    // Skip to next card after a brief pause.
     video.play().catch(() => {
-      // Video blocked — skip to next
-      resumeAmbient();
-      setTimeout(() => showCard(idx + 1), 1000);
+      if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
+      setTimeout(() => showCard(idx + 1), 500);
     });
   }
 
-  /* ── END SHOWCASE ── */
+  /* ══════════════════════════════════════════════════
+     END / EXIT
+  ══════════════════════════════════════════════════ */
   function endShowcase() {
     isRunning = false;
     document.getElementById('card-stage').innerHTML   = '';
@@ -596,7 +649,6 @@
     document.getElementById('btn-exit').classList.add('exit-highlight');
   }
 
-  /* ── EXIT ── */
   function exitShowcase() {
     if (cardTimer) clearTimeout(cardTimer);
     ambientAudio.pause();
@@ -604,7 +656,9 @@
   }
   window.exitShowcase = exitShowcase;
 
-  /* ── DOWNLOAD IMAGE ── */
+  /* ══════════════════════════════════════════════════
+     DOWNLOAD IMAGE
+  ══════════════════════════════════════════════════ */
   async function downloadCard(url, idx) {
     try {
       const res  = await fetch(url);
