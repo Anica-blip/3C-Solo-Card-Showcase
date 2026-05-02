@@ -373,13 +373,14 @@
   const ENTER_MS        = 800;
   const EXIT_MS         = 800;
 
-  let cards          = [];
-  let currentIdx     = 0;
-  let isRunning      = false;
-  let ambientPlaying = false;   // true = music is currently audible
-  let hasAmbient     = false;
-  let exitTarget     = '../index.html';
-  let cardTimer      = null;
+  let cards             = [];
+  let currentIdx        = 0;
+  let isRunning         = false;
+  let ambientPlaying    = false;   // true = music is currently audible
+  let hasAmbient        = false;
+  let exitTarget        = '../index.html';
+  let cardTimer         = null;
+  let videoPreloadCache = {};      // idx → HTMLVideoElement, pre-buffered off-stage
 
   const ambientAudio = document.getElementById('ambient-audio');
   const musicBtn     = document.getElementById('btn-music');
@@ -519,6 +520,11 @@
     } else {
       showImageCard(idx, card, stage);
     }
+
+    // ── LOOK-AHEAD PRELOAD ──
+    // While the current card is on screen, silently buffer the next video
+    // so it is ready to play the instant it's needed — no buffering stall.
+    preloadNextVideo(idx + 1);
   }
 
   /* ══════════════════════════════════════════════════
@@ -585,27 +591,72 @@
   }
 
   /* ══════════════════════════════════════════════════
+     LOOK-AHEAD VIDEO PRELOADER
+     Called every time a card is shown. If the NEXT card
+     is a video and not already cached, creates a hidden
+     <video> element and begins buffering it immediately
+     while the current card is still on screen.
+     showVideoCard() reuses this element so playback
+     starts instantly with no buffering delay.
+  ══════════════════════════════════════════════════ */
+  function preloadNextVideo(nextIdx) {
+    if (nextIdx >= cards.length) return;
+    const next = cards[nextIdx];
+    if (!next || (next.media_type || 'image') !== 'video') return;
+    if (videoPreloadCache[nextIdx]) return; // already cached
+
+    const src = next.media_url || next.video_url || '';
+    if (!src) return;
+
+    const v       = document.createElement('video');
+    v.src         = src;
+    v.preload     = 'auto';
+    v.muted       = true;
+    v.playsInline = true;
+    // Position off-screen — not visible, just buffering
+    v.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;';
+    document.body.appendChild(v);
+    v.load();
+
+    videoPreloadCache[nextIdx] = v;
+  }
+
+  /* ══════════════════════════════════════════════════
      VIDEO CARD
+     - Checks preload cache first — reuses buffered element
+       so video fires instantly with no loading stall
      - Ambient music continues playing (not paused)
      - Safety timer starts ONLY from 'playing' event
-       so buffering delay never eats into display time
-     - 5-second buffer added to fallback timeout
+       so any remaining buffering never eats display time
+     - 5-second buffer on fallback timeout
      - 'ended' clears fallback timer to prevent replay
   ══════════════════════════════════════════════════ */
   function showVideoCard(idx, card, stage) {
-    // Ambient music intentionally keeps playing alongside video audio
-
     const wrap = document.createElement('div');
     wrap.className = 'showcase-video';
 
-    const video       = document.createElement('video');
-    video.src         = card.media_url || card.video_url || '';
-    video.autoplay    = true;
-    video.muted       = true;   // start muted — passes all browser autoplay policies
-    video.playsInline = true;
-    video.controls    = false;
-    video.preload     = 'auto';
-    video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+    // Reuse preloaded element if available — already buffered, fires instantly
+    // Otherwise create fresh (e.g. first card in sequence is a video)
+    let video = videoPreloadCache[idx] || null;
+
+    if (video) {
+      // Detach from off-screen holding position, reset styles for full display
+      if (video.parentNode) video.parentNode.removeChild(video);
+      video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+      delete videoPreloadCache[idx];
+    } else {
+      video             = document.createElement('video');
+      video.src         = card.media_url || card.video_url || '';
+      video.preload     = 'auto';
+      video.playsInline = true;
+      video.controls    = false;
+      video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+    }
+
+    // Always ensure these are set correctly before play
+    video.autoplay = true;
+    video.muted    = true;   // start muted — passes all browser autoplay policies
+    video.controls = false;
 
     wrap.appendChild(video);
     stage.appendChild(wrap);
@@ -637,8 +688,8 @@
     }, { once: true });
 
     // ── PLAY — start muted, unmute immediately after playback begins ──
-    // Muted autoplay is universally allowed. Unmuting after play() resolves
-    // is also allowed because the user already consented on the consent page.
+    // Muted autoplay is universally allowed. Unmuting right after play()
+    // resolves is permitted — user already consented on the consent page.
     video.play().then(() => {
       video.muted = false;
     }).catch(() => {
