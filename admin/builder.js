@@ -396,7 +396,10 @@ export async function saveShowcaseHandler() {
       if (!file) continue;
 
       const ext      = file.name.split('.').pop().toLowerCase();
-      const filename = `card-${String(i + 1).padStart(3, '0')}.${ext}`;
+      // Use position + unique timestamp so reordering + re-uploading never
+      // overwrites an R2 file that another card still references.
+      // e.g. card-003-1746234567890.png — always a fresh path, no collision.
+      const filename = `card-${String(i + 1).padStart(3, '0')}-${Date.now()}.${ext}`;
       const isVideo  = card.media_type === 'video';
 
       const res = await fetch(`${WORKER_URL}/card/${currentSlug}/${filename}`, {
@@ -513,6 +516,13 @@ export async function saveShowcaseHandler() {
     // Refresh archive
     archive = await fetchAllShowcases();
     renderArchive();
+
+    // Clear all localPreviews — grid now renders from real R2 URLs only.
+    // Stale object URLs (from local file uploads) would show wrong images
+    // if the same card is edited again in the same session.
+    cards.forEach(c => { c.localPreview = ''; });
+    renderGrid();
+
     showStatus(`Showcase "${title}" saved successfully!`, 'success');
 
   } catch (err) {
