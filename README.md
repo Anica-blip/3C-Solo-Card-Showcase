@@ -1,6 +1,22 @@
 # 3C Card Showcase
 
-**Built by Claude (Anthropic) × Chef Anica · 3C Thread To Success Cooking Lab**
+This project is part of the 3C Thread To Success™ ecosystem — a growing digital platform that combines creativity, structure, and real-world application.
+
+The 3C Thread To Success™ brand, including its name, structure, characters (Aurion 3C Mascot), and overall system design, remains the intellectual property of the creator and is not included in this license.
+
+Commercial use of the brand or replication of the ecosystem identity is not permitted without permission.
+
+### 🎭 The 3C Ecosystem
+
+This project is part of a larger system built around three core identities:
+
+Aurion → Engagement & Experience
+Caelum → Structure & Direction
+Anica (Founder) → Authority & Vision
+
+Together, they create a balanced environment for growth, learning, and progression.
+
+---
 
 A cinematic card viewer — floating, immersive, and designed for the 3C ecosystem.
 Each showcase is a curated collection of cards (quotes, affirmations, storytelling) displayed one at a time inside a TV-screen experience.
@@ -71,10 +87,26 @@ public/index.html?showcase=showcase.01
 ## Watermark
 
 All public and admin pages carry:
-> Built with ♥ by **Claude (Anthropic)** × Chef Anica · 3C Thread To Success Cooking Lab
+> Designed and Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success™ Cooking Lab
 
 ---
 
 ## License
 
 MIT — see `LICENSE`
+
+---
+
+## 👤 Creator
+
+Anica-blip (“Chef”)
+Founder of 3C Thread To Success™ ("Cooking Lab")
+Independent Creator | Community Builder
+
+---
+
+🧠 Philosophy
+
+“Think it. Do it. Own it.”
+
+This project was built from vision, persistence, and a commitment to creating meaningful and structured experiences — even with minimal resources.
