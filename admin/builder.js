@@ -47,12 +47,16 @@ export async function init() {
 }
 
 function bindMetaInputs() {
-  // Cover upload
+  // Cover upload — file
   document.getElementById('upload-cover').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     pendingCoverFile = file;
+    _savedCoverUrl   = '';  // file takes priority — clear any pasted URL
     document.getElementById('cover-name').textContent = file.name;
+    // Clear URL input
+    const urlInput = document.getElementById('cover-r2-url');
+    if (urlInput) urlInput.value = '';
     const reader = new FileReader();
     reader.onload = ev => {
       const prev = document.getElementById('cover-preview');
@@ -61,13 +65,44 @@ function bindMetaInputs() {
     reader.readAsDataURL(file);
   });
 
-  // Music upload
+  // Cover R2 URL input
+  const coverR2 = document.getElementById('cover-r2-url');
+  if (coverR2) {
+    coverR2.addEventListener('input', () => {
+      const url = coverR2.value.trim();
+      _savedCoverUrl   = url;
+      pendingCoverFile = null;  // URL takes priority — clear any selected file
+      const nameEl = document.getElementById('cover-name');
+      if (nameEl) nameEl.textContent = url ? `✅ ${url.split('/').pop()}` : 'No file';
+      // Update cover preview from URL
+      const prev = document.getElementById('cover-preview');
+      if (prev) prev.src = url || '';
+    });
+  }
+
+  // Music upload — file
   document.getElementById('upload-music').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     pendingMusicFile = file;
+    _savedMusicUrl   = '';  // file takes priority — clear any pasted URL
     document.getElementById('music-name').textContent = file.name;
+    // Clear URL input
+    const urlInput = document.getElementById('music-r2-url');
+    if (urlInput) urlInput.value = '';
   });
+
+  // Music R2 URL input
+  const musicR2 = document.getElementById('music-r2-url');
+  if (musicR2) {
+    musicR2.addEventListener('input', () => {
+      const url = musicR2.value.trim();
+      _savedMusicUrl   = url;
+      pendingMusicFile = null;  // URL takes priority — clear any selected file
+      const nameEl = document.getElementById('music-name');
+      if (nameEl) nameEl.textContent = url ? `✅ ${url.split('/').pop()}` : 'No file';
+    });
+  }
 }
 
 /* ── SLUG DISPLAY ───────────────────────────────── */
@@ -242,7 +277,6 @@ function renderGrid() {
     let thumbHtml;
     if (isVideo) {
       if (videoSrc) {
-        // Video with source — show first frame via <video preload="metadata">
         thumbHtml = `
           <div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:6px;">
             <video src="${videoSrc}" preload="metadata" muted playsinline
@@ -255,7 +289,6 @@ function renderGrid() {
               line-height:1.4;">▶ VIDEO</span>
           </div>`;
       } else {
-        // Video card with no file yet
         thumbHtml = `
           <div class="grid-card-empty shape-${card.shape}"
             style="display:flex;flex-direction:column;align-items:center;
@@ -266,7 +299,6 @@ function renderGrid() {
           </div>`;
       }
     } else {
-      // Image card
       thumbHtml = imgSrc
         ? `<img class="grid-card-thumb shape-${card.shape}" src="${imgSrc}" alt="Card ${idx + 1}" />`
         : `<div class="grid-card-empty shape-${card.shape}">&#9635;</div>`;
@@ -298,7 +330,6 @@ function renderGrid() {
 /* ── ADD CARD ────────────────────────────────────── */
 export function addCard() {
   const id = Date.now();
-  // media_type defaults to 'image' — must be set here so renderGrid always has it
   cards.push({ id, shape: 'rectangle', media_type: 'image', image_url: '', media_url: '', r2_key: '', localPreview: '' });
   currentIndex = cards.length - 1;
   renderLeft();
@@ -342,7 +373,6 @@ export function setShape(shape) {
 export function setMediaType(type) {
   if (!cards[currentIndex]) return;
   cards[currentIndex].media_type = type;
-  // Reset preview and pending file when switching type
   cards[currentIndex].localPreview = '';
   delete pendingCardFiles[cards[currentIndex].id];
   renderLeft();
@@ -372,6 +402,16 @@ export function newShowcase() {
   document.getElementById('music-name').textContent  = 'No file';
   document.getElementById('showcase-url-wrap').classList.remove('visible');
 
+  // Clear R2 URL inputs
+  const coverR2 = document.getElementById('cover-r2-url');
+  const musicR2 = document.getElementById('music-r2-url');
+  if (coverR2) coverR2.value = '';
+  if (musicR2) musicR2.value = '';
+
+  // Clear cover preview
+  const prev = document.getElementById('cover-preview');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+
   archive = archive; // keep archive loaded
   currentSlug = generateNextSlug(archive);
   updateSlugDisplay();
@@ -396,9 +436,6 @@ export async function saveShowcaseHandler() {
       if (!file) continue;
 
       const ext      = file.name.split('.').pop().toLowerCase();
-      // Use position + unique timestamp so reordering + re-uploading never
-      // overwrites an R2 file that another card still references.
-      // e.g. card-003-1746234567890.png — always a fresh path, no collision.
       const filename = `card-${String(i + 1).padStart(3, '0')}-${Date.now()}.${ext}`;
       const isVideo  = card.media_type === 'video';
 
@@ -421,8 +458,7 @@ export async function saveShowcaseHandler() {
       delete pendingCardFiles[card.id];
     }
 
-    /* 2. Upload cover image */
-    // Preserve existing R2 URL if no new file is being uploaded
+    /* 2. Upload cover image — or use pasted R2 URL */
     let coverUrl = _savedCoverUrl || '';
     if (pendingCoverFile) {
       showStatus('Uploading cover image...', 'info');
@@ -437,14 +473,12 @@ export async function saveShowcaseHandler() {
       });
       if (!res.ok) throw new Error('Cover upload failed');
       const { public_url } = await res.json();
-      // Cache-bust + keep module state in sync so subsequent saves don't revert
       coverUrl = `${public_url}?v=${Date.now()}`;
       _savedCoverUrl = coverUrl;
       pendingCoverFile = null;
     }
 
-    /* 3. Upload ambient music */
-    // Preserve existing R2 URL if no new file is being uploaded
+    /* 3. Upload ambient music — or use pasted R2 URL */
     let musicUrl = _savedMusicUrl || '';
     if (pendingMusicFile) {
       showStatus('Uploading ambient music...', 'info');
@@ -459,7 +493,6 @@ export async function saveShowcaseHandler() {
       });
       if (!res.ok) throw new Error('Music upload failed');
       const { public_url } = await res.json();
-      // Keep module state in sync so subsequent saves don't revert
       musicUrl = public_url;
       _savedMusicUrl = musicUrl;
       pendingMusicFile = null;
@@ -517,9 +550,6 @@ export async function saveShowcaseHandler() {
     archive = await fetchAllShowcases();
     renderArchive();
 
-    // Clear all localPreviews — grid now renders from real R2 URLs only.
-    // Stale object URLs (from local file uploads) would show wrong images
-    // if the same card is edited again in the same session.
     cards.forEach(c => { c.localPreview = ''; });
     renderGrid();
 
@@ -547,8 +577,6 @@ export async function editShowcase(slug) {
   if (error || !data) { showStatus('Could not load showcase.', 'error'); return; }
 
   currentSlug  = slug;
-  // FIX: map media_type and media_url — previously missing, caused video cards
-  // to silently revert to image type and lose their media_url on every re-save
   cards        = (data.cards || []).map(c => ({
     id:           c.id || Date.now() + Math.random(),
     shape:        c.shape        || 'rectangle',
@@ -567,12 +595,21 @@ export async function editShowcase(slug) {
   _savedMusicUrl   = data.ambient_music_url || '';
 
   document.getElementById('showcase-title').value = data.title || '';
-  document.getElementById('cover-name').textContent = data.cover_url ? 'Saved in R2' : 'No file';
+  document.getElementById('cover-name').textContent = data.cover_url
+    ? `✅ ${data.cover_url.split('/').pop().split('?')[0]}`
+    : 'No file';
+  document.getElementById('music-name').textContent = data.ambient_music_url
+    ? `✅ ${data.ambient_music_url.split('/').pop()}`
+    : 'No file';
+
+  // Populate R2 URL inputs with existing asset URLs
+  const coverR2 = document.getElementById('cover-r2-url');
+  const musicR2 = document.getElementById('music-r2-url');
+  if (coverR2) coverR2.value = data.cover_url || '';
+  if (musicR2) musicR2.value = data.ambient_music_url || '';
 
   const prev = document.getElementById('cover-preview');
   if (prev && data.cover_url) prev.src = data.cover_url;
-
-  document.getElementById('music-name').textContent = data.ambient_music_url ? 'Saved in R2' : 'No file';
 
   updateSlugDisplay();
   renderLeft();
