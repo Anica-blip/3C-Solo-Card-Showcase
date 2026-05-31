@@ -198,6 +198,16 @@ function renderLeft() {
       <input type="file" id="upload-card-img"
         accept="${card.media_type === 'video' ? 'video/*' : 'image/*'}"
         style="display:none;" />
+      <div class="r2-url-row" style="margin-top:8px;">
+        <span class="r2-or">or paste R2 URL</span>
+        <input
+          type="text"
+          id="card-r2-url"
+          class="r2-url-input"
+          placeholder="https://files.3c-public-library.org/…"
+          value="${card.media_type === 'video' ? (card.media_url || '') : (card.image_url || '')}"
+        />
+      </div>
     </div>
   `;
 
@@ -238,6 +248,35 @@ function renderLeft() {
       reader.readAsDataURL(file);
     }
   });
+
+  // Card R2 URL input — paste existing R2 URL instead of uploading a file
+  const cardR2 = document.getElementById('card-r2-url');
+  if (cardR2) {
+    cardR2.addEventListener('input', () => {
+      const url = cardR2.value.trim();
+      if (card.media_type === 'video') {
+        card.media_url = url;
+        card.image_url = '';
+      } else {
+        card.image_url = url;
+        card.media_url = '';
+      }
+      card.localPreview = '';           // clear any local file preview
+      delete pendingCardFiles[card.id]; // URL takes priority — discard any pending file
+      // Update large preview directly — avoids re-rendering and disrupting typing
+      const wrap = document.getElementById('card-preview-large');
+      if (wrap && url) {
+        if (card.media_type === 'video') {
+          wrap.innerHTML = `<video src="${url}" preload="metadata" muted playsinline
+            style="max-width:100%;max-height:100%;object-fit:contain;
+                   border-radius:8px;display:block;"></video>`;
+        } else {
+          wrap.innerHTML = `<img src="${url}" alt="Card preview" />`;
+        }
+      }
+      renderGrid(); // refresh thumbnail in right panel
+    });
+  }
 
   // Save duration when changed manually
   document.getElementById('card-duration').addEventListener('change', e => {
