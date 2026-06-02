@@ -21,10 +21,9 @@
 
 // ─── CONFIG — update loginPage per repo ──────────────────────────────────────
 const AUTH_CONFIG = {
-  supabaseUrl:   'https://cgxjqsbrditbteqhdyus.supabase.co',
-  supabaseKey:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneGpxc2JyZGl0YnRlcWhkeXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMTY1ODEsImV4cCI6MjA2NjY5MjU4MX0.xUDy5ic-r52kmRtocdcW8Np9-lczjMZ6YKPXc03rIG4',   // ← Supabase → Settings → API → anon public
-  allowedEmails: ['3c.innertherapy@gmail.com'],        // ← Your GitHub account email address
-  loginPage:     'https://anica-blip.github.io/3C-Solo-Card-Showcase/login.html'
+  supabaseUrl: 'https://cgxjqsbrditbteqhdyus.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneGpxc2JyZGl0YnRlcWhkeXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMTY1ODEsImV4cCI6MjA2NjY5MjU4MX0.xUDy5ic-r52kmRtocdcW8Np9-lczjMZ6YKPXc03rIG4',   // ← Supabase → Settings → API → anon public
+  loginPage:   'https://anica-blip.github.io/3C-Solo-Card-Showcase/login.html'
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -37,21 +36,9 @@ document.documentElement.style.visibility = 'hidden';
     const { data: { session } } = await client.auth.getSession();
 
     // No session — send to login
-    if (!session) {
-      redirectToLogin();
-      return;
-    }
+    if (!session) { redirectToLogin(); return; }
 
-    // Session exists — check whitelist
-    const email = session.user?.email;
-    if (!AUTH_CONFIG.allowedEmails.includes(email)) {
-      // Valid GitHub login but not authorised — sign out and redirect
-      await client.auth.signOut();
-      redirectToLogin('unauthorized');
-      return;
-    }
-
-    // ✅ Authorised — reveal the page
+    // ✅ Session exists — reveal the page
     document.documentElement.style.visibility = 'visible';
 
   } catch (err) {
