@@ -22,8 +22,8 @@
 // ─── CONFIG — update loginPage per repo ──────────────────────────────────────
 const AUTH_CONFIG = {
   supabaseUrl:   'https://cgxjqsbrditbteqhdyus.supabase.co',
-  supabaseKey:   'YOUR_SUPABASE_ANON_KEY',   // ← Supabase → Settings → API → anon public
-  allowedEmails: ['YOUR_GITHUB_EMAIL'],        // ← Your GitHub account email address
+  supabaseKey:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneGpxc2JyZGl0YnRlcWhkeXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMTY1ODEsImV4cCI6MjA2NjY5MjU4MX0.xUDy5ic-r52kmRtocdcW8Np9-lczjMZ6YKPXc03rIG4',   // ← Supabase → Settings → API → anon public
+  allowedEmails: ['3c.innertherapy@gmail.com'],        // ← Your GitHub account email address
   loginPage:     'https://anica-blip.github.io/3C-Solo-Card-Showcase/login.html'
 };
 // ─────────────────────────────────────────────────────────────────────────────
