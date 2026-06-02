@@ -184,7 +184,7 @@
   <!-- Login card -->
   <div class="login-card" id="loginCard" style="display:none;">
     <div class="logo-wrap">
-      <img src="3C Thread To Success.png" alt="3C Logo" />
+      <img src="favicon.png" alt="3C Logo" />
     </div>
     <div class="card-title">3C Tools Access</div>
     <div class="card-sub">Creator workspace — authorised access only.</div>
@@ -209,11 +209,10 @@
 ═══════════════════════════════════════════════════════════════════════════ */
 
   // ─── CONFIG ───────────────────────────────────────────────────────────────
-  const SUPABASE_URL   = 'https://cgxjqsbrditbteqhdyus.supabase.co';
-  const SUPABASE_KEY   = 'YOUR_SUPABASE_ANON_KEY';   // ← Settings → API → anon public
-  const ALLOWED_EMAILS = ['YOUR_GITHUB_EMAIL'];        // ← Your GitHub account email
-  const REDIRECT_TO    = 'https://anica-blip.github.io/3C-Solo-Card-Showcase/login.html';
-  const FALLBACK_URL   = 'https://anica-blip.github.io/3C-Solo-Card-Showcase/admin/index.html';
+  const SUPABASE_URL = 'https://cgxjqsbrditbteqhdyus.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneGpxc2JyZGl0YnRlcWhkeXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMTY1ODEsImV4cCI6MjA2NjY5MjU4MX0.xUDy5ic-r52kmRtocdcW8Np9-lczjMZ6YKPXc03rIG4';   // ← Settings → API → anon public
+  const REDIRECT_TO  = 'https://anica-blip.github.io/3C-Solo-Card-Showcase/login.html';
+  const FALLBACK_URL = 'https://anica-blip.github.io/3C-Solo-Card-Showcase/admin/index.html';
   // ─────────────────────────────────────────────────────────────────────────
 
   const client         = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -241,12 +240,6 @@
   }
 
   function handleAuthorized(session) {
-    const email = session.user?.email;
-    if (!ALLOWED_EMAILS.includes(email)) {
-      client.auth.signOut();
-      showLoginCard('This GitHub account is not authorised.', 'error');
-      return;
-    }
     setTimeout(() => window.location.replace(getNextUrl()), 600);
   }
 
@@ -257,11 +250,7 @@
   (async function init() {
     const { data: { session } } = await client.auth.getSession();
     if (session) { handleAuthorized(session); return; }
-    const reason = new URLSearchParams(location.search).get('reason');
-    showLoginCard(
-      reason === 'unauthorized' ? 'That GitHub account is not authorised.' : '',
-      reason === 'unauthorized' ? 'error' : ''
-    );
+    showLoginCard();
   })();
 
   btnGithub.addEventListener('click', async () => {
