@@ -791,6 +791,14 @@
   function exitShowcase() {
     if (cardTimer) clearTimeout(cardTimer);
     ambientAudio.pause();
+    // Running inside the Vault's iframe modal — ask the parent page
+    // to close the modal instead of navigating this little window
+    // to a local page (which just swaps what's shown inside it).
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'vault-close-modal' }, '*');
+      return;
+    }
+    // Standalone / not inside the Vault — original behaviour unchanged
     location.href = exitTarget;
   }
   window.exitShowcase = exitShowcase;
