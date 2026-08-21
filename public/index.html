@@ -450,7 +450,6 @@
   let isRunning         = false;
   let ambientPlaying    = false;   // true = music is currently audible
   let hasAmbient        = false;
-  let exitTarget        = '../index.html';
   let cardTimer         = null;
   let videoPreloadCache = {};      // idx → HTMLVideoElement, pre-buffered off-stage
 
@@ -490,7 +489,6 @@
 
     cards = data.cards;
     document.getElementById('bezel-title').textContent = data.title || '3C Card Showcase';
-    exitTarget = `../landing.html?showcase=${encodeURIComponent(slug)}`;
 
     // Populate consent card count
     const metaEl = document.getElementById('co-meta');
@@ -798,16 +796,9 @@
       window.parent.postMessage({ type: 'vault-close-modal' }, '*');
       return;
     }
-    // Standalone / not inside the Vault — go back to wherever the user
-    // came from (e.g. library.html), instead of navigating forward to
-    // this showcase app's own landing page.
-    if (history.length > 1) {
-      history.back();
-    } else {
-      // No prior page in browser history (e.g. direct link/bookmark) —
-      // fall back to the showcase's own landing page.
-      location.href = exitTarget;
-    }
+    // Standalone / not inside the Vault — plain close, return to the
+    // browser page this showcase was launched from.
+    history.back();
   }
   window.exitShowcase = exitShowcase;
 
