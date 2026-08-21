@@ -211,7 +211,12 @@
     document.getElementById('btnEnter').onclick = () => {
       // Pass full data through to consent → viewer
       sessionStorage.setItem('showcaseData', JSON.stringify(data || {}));
-      location.href = `${CONSENT_PAGE}?showcase=${encodeURIComponent(slug)}`;
+      // location.replace (not .href) — swaps this history entry instead
+      // of pushing a new one, so landing.html doesn't sit in the back
+      // stack. This lets the viewer's X (history.back()) skip straight
+      // past landing.html to whatever page launched the showcase
+      // (e.g. library.html), instead of landing back here.
+      location.replace(`${CONSENT_PAGE}?showcase=${encodeURIComponent(slug)}`);
     };
   }
 
