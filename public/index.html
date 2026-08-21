@@ -500,6 +500,12 @@
     if (data.ambient_music_url) {
       hasAmbient       = true;
       ambientAudio.src = data.ambient_music_url;
+      // Admin-set level (0-5, default 5 = full volume) — behind the
+      // scenes only, no user-facing control. Existing showcases saved
+      // before this field existed simply get the default (unchanged
+      // volume, same as today).
+      const volumeLevel = data.ambient_volume_level ?? 5;
+      ambientAudio.volume = Math.max(0, Math.min(5, volumeLevel)) / 5;
       ambientAudio.load();
       musicBtn.style.display = 'flex';
     }
