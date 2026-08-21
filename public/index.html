@@ -798,8 +798,16 @@
       window.parent.postMessage({ type: 'vault-close-modal' }, '*');
       return;
     }
-    // Standalone / not inside the Vault — original behaviour unchanged
-    location.href = exitTarget;
+    // Standalone / not inside the Vault — go back to wherever the user
+    // came from (e.g. library.html), instead of navigating forward to
+    // this showcase app's own landing page.
+    if (history.length > 1) {
+      history.back();
+    } else {
+      // No prior page in browser history (e.g. direct link/bookmark) —
+      // fall back to the showcase's own landing page.
+      location.href = exitTarget;
+    }
   }
   window.exitShowcase = exitShowcase;
 
