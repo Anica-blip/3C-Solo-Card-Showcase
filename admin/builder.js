@@ -439,6 +439,7 @@ export function newShowcase() {
   document.getElementById('showcase-title').value = '';
   document.getElementById('cover-name').textContent  = 'No file';
   document.getElementById('music-name').textContent  = 'No file';
+  document.getElementById('ambient-volume-level').value = 5;
   document.getElementById('showcase-url-wrap').classList.remove('visible');
 
   // Clear R2 URL inputs
@@ -464,6 +465,14 @@ export async function saveShowcaseHandler() {
   const title = document.getElementById('showcase-title').value.trim();
   if (!title) { showStatus('Please enter a showcase title.', 'warning'); return; }
   if (cards.length === 0) { showStatus('Add at least one card before saving.', 'warning'); return; }
+
+  // Ambient Volume Level — integer 0-5, defaults to 5 (full volume) if
+  // blank or out of range. Matches the DB check constraint on
+  // card_showcases.ambient_volume_level.
+  let ambientVolumeLevel = parseInt(document.getElementById('ambient-volume-level').value, 10);
+  if (isNaN(ambientVolumeLevel)) ambientVolumeLevel = 5;
+  if (ambientVolumeLevel < 0) ambientVolumeLevel = 0;
+  if (ambientVolumeLevel > 5) ambientVolumeLevel = 5;
 
   showStatus('Uploading cards...', 'info');
 
@@ -541,8 +550,9 @@ export async function saveShowcaseHandler() {
     showStatus('Saving showcase JSON...', 'info');
     const showcaseData = {
       title,
-      cover_url:         coverUrl,
-      ambient_music_url: musicUrl,
+      cover_url:            coverUrl,
+      ambient_music_url:    musicUrl,
+      ambient_volume_level: ambientVolumeLevel,
       cards: cards.map((c, i) => ({
         id:          i + 1,
         shape:       c.shape,
@@ -566,14 +576,15 @@ export async function saveShowcaseHandler() {
     const r2Key       = `CardShowcase/${currentSlug}/showcase.json`;
 
     const { error } = await saveShowcase({
-      showcase_slug:    currentSlug,
+      showcase_slug:        currentSlug,
       title,
-      cards:            showcaseData.cards,
-      cover_url:        coverUrl,
-      ambient_music_url: musicUrl,
-      showcase_url:     showcaseUrl,
-      r2_key:           r2Key,
-      is_active:        true,
+      cards:                showcaseData.cards,
+      cover_url:            coverUrl,
+      ambient_music_url:    musicUrl,
+      ambient_volume_level: ambientVolumeLevel,
+      showcase_url:         showcaseUrl,
+      r2_key:               r2Key,
+      is_active:            true,
     });
 
     if (error) throw new Error(error.message);
@@ -640,6 +651,8 @@ export async function editShowcase(slug) {
   document.getElementById('music-name').textContent = data.ambient_music_url
     ? `✅ ${data.ambient_music_url.split('/').pop()}`
     : 'No file';
+  document.getElementById('ambient-volume-level').value =
+    (data.ambient_volume_level ?? 5);
 
   // Populate R2 URL inputs with existing asset URLs
   const coverR2 = document.getElementById('cover-r2-url');
