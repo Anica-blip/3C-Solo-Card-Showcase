@@ -135,6 +135,17 @@
         </div>
         <div class="field-hint">MP3 / OGG — optional background audio</div>
       </div>
+
+      <!-- Ambient Volume Level (admin-only — no user-facing control) -->
+      <div>
+        <label class="field-label" for="ambient-volume-level">Ambient Volume Level</label>
+        <input type="number" id="ambient-volume-level"
+          min="0" max="5" step="1" value="5"
+          style="width:80px;background:var(--surface-2);border:1px solid var(--border-light);
+                 color:var(--text);border-radius:8px;padding:7px 10px;
+                 font-family:'Outfit',sans-serif;font-size:13px;outline:none;" />
+        <div class="field-hint">0 (silent) to 5 (full volume) — default 5. Testing only, users can't adjust this.</div>
+      </div>
     </div>
 
     <!-- ── STATUS ─────────────────────────────────────── -->
