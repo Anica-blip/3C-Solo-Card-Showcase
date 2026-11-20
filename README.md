@@ -31,8 +31,11 @@ Each showcase is a curated collection of cards (quotes, affirmations, storytelli
 |---|---|---|
 | Hosting | GitHub Pages | Serves all HTML/CSS/JS |
 | Storage | Cloudflare R2 (`3c-library-files`) | Card images, cover, ambient audio, showcase JSON |
-| API | Cloudflare Worker (`3c-card-showcase`) | CRUD routes between admin and R2 |
-| Database | Supabase (`card_showcases`) | Showcase registry, metadata, active toggle |
+| API | Cloudflare Worker (`3c-card-showcase`) | Routes between admin and R2; saves, deletes and uploads are owner-only |
+| Sign-in | GitHub through Supabase (owner only) | Protects the admin pages and the Worker's write routes |
+| Database | Supabase (`card_showcases`) | Showcase registry, metadata, active toggle; public read, owner-only write |
+
+Anyone can view a showcase; only the owner can change one. No secrets are stored in this repository.
 
 **R2 folder:** `CardShowcase/{slug}/`
 
@@ -41,19 +44,25 @@ Each showcase is a curated collection of cards (quotes, affirmations, storytelli
 ## File Structure
 
 ```
-3c-card-showcase/
+3C-Solo-Card-Showcase/
 ├── admin/
-│   ├── index.html        ← Admin builder (two-panel card navigator)
+│   ├── index.html            ← Admin builder (two-panel card navigator)
+│   ├── landing-upload.html   ← Cover image uploader
 │   ├── admin.css
 │   ├── builder.js
-│   ├── config.js         ← WORKER_URL, Supabase keys
-│   └── supabaseAPI.js
+│   ├── config.js             ← WORKER_URL, Supabase address + public key
+│   └── supabaseAPI.js        ← Supabase calls + sign-in token for the Worker
 ├── public/
-│   └── index.html        ← TV screen card viewer
-├── worker.js             ← Cloudflare Worker
-├── wrangler.toml         ← R2 binding: SHOWCASE_BUCKET → 3c-library-files
-├── landing.html          ← Landing gate (cover image + ENTER)
+│   ├── index.html            ← TV screen card viewer
+│   └── consent.html          ← Pass-through to index.html (keeps old links working)
+├── login.html                ← Sign in with GitHub
+├── auth-guard.js             ← Owner check for the admin pages
+├── index.html                ← Redirects to the admin
+├── landing.html              ← Landing gate (cover image + ENTER)
+├── worker.js                 ← Cloudflare Worker
+├── wrangler.toml             ← Record of the Worker's live settings (not used to deploy)
 ├── favicon.png
+├── LEGAL_DISCLAIMER.md
 ├── LICENSE
 ├── README.md
 └── SETUP.md
