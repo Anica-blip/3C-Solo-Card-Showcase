@@ -382,7 +382,7 @@
   </footer>
 
 <script type="module">
-  import { fetchAllShowcases, updateShowcaseCoverUrl } from './supabaseAPI.js';
+  import { fetchAllShowcases, updateShowcaseCoverUrl, authHeaders } from './supabaseAPI.js';
 
   const WORKER_URL = window.APP_CONFIG?.WORKER_URL || 'https://3c-card-showcase.3c-innertherapy.workers.dev';
 
@@ -471,10 +471,10 @@
       /* PUT /cover/:slug */
       const uploadRes = await fetch(`${WORKER_URL}/cover/${slug}`, {
         method: 'PUT',
-        headers: {
+        headers: await authHeaders({
           'Content-Type':     selectedFile.type || 'image/png',
           'X-File-Extension': ext,
-        },
+        }),
         body: selectedFile,
       });
 
@@ -500,7 +500,7 @@
 
       const saveRes = await fetch(`${WORKER_URL}/showcase/${slug}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders({ 'Content-Type': 'application/json' }),
         body:    JSON.stringify(showcaseJson),
       });
 
