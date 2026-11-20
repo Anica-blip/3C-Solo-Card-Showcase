@@ -12,6 +12,7 @@
 
 import {
   supabase,
+  authHeaders,
   fetchAllShowcases,
   generateNextSlug,
   saveShowcase,
@@ -489,7 +490,7 @@ export async function saveShowcaseHandler() {
 
       const res = await fetch(`${WORKER_URL}/card/${currentSlug}/${filename}`, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
+        headers: await authHeaders({ 'Content-Type': file.type }),
         body: file,
       });
       if (!res.ok) throw new Error(`Card ${i + 1} upload failed`);
@@ -513,10 +514,10 @@ export async function saveShowcaseHandler() {
       const ext = pendingCoverFile.name.split('.').pop().toLowerCase();
       const res = await fetch(`${WORKER_URL}/cover/${currentSlug}`, {
         method: 'PUT',
-        headers: {
+        headers: await authHeaders({
           'Content-Type': pendingCoverFile.type,
           'X-File-Extension': ext,
-        },
+        }),
         body: pendingCoverFile,
       });
       if (!res.ok) throw new Error('Cover upload failed');
@@ -533,10 +534,10 @@ export async function saveShowcaseHandler() {
       const ext = pendingMusicFile.name.split('.').pop().toLowerCase();
       const res = await fetch(`${WORKER_URL}/music/${currentSlug}`, {
         method: 'PUT',
-        headers: {
+        headers: await authHeaders({
           'Content-Type': pendingMusicFile.type,
           'X-File-Extension': ext,
-        },
+        }),
         body: pendingMusicFile,
       });
       if (!res.ok) throw new Error('Music upload failed');
@@ -566,7 +567,7 @@ export async function saveShowcaseHandler() {
 
     const r2Res = await fetch(`${WORKER_URL}/showcase/${currentSlug}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(showcaseData),
     });
     if (!r2Res.ok) throw new Error('R2 showcase save failed');
@@ -683,12 +684,25 @@ export async function editShowcase(slug) {
 export async function deleteShowcaseHandler(slug) {
   if (!confirm(`Delete showcase "${slug}"? This cannot be undone.`)) return;
 
-  await fetch(`${WORKER_URL}/showcase/${slug}`, { method: 'DELETE' });
+  let r2DeleteFailed = false;
+  try {
+    const delRes = await fetch(`${WORKER_URL}/showcase/${slug}`, {
+      method: 'DELETE',
+      headers: await authHeaders(),
+    });
+    if (!delRes.ok) r2DeleteFailed = true;
+  } catch (e) {
+    r2DeleteFailed = true;
+  }
   await deleteShowcase(slug);
 
   archive = await fetchAllShowcases();
   renderArchive();
-  showStatus(`Showcase ${slug} deleted.`, 'warning');
+  if (r2DeleteFailed) {
+    showStatus(`Showcase ${slug} was removed from the list, but its stored file could not be deleted.`, 'warning');
+  } else {
+    showStatus(`Showcase ${slug} deleted.`, 'warning');
+  }
 }
 
 /* ── TOGGLE ACTIVE ───────────────────────────────── */
