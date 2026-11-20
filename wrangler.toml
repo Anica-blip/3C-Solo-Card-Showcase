@@ -1,9 +1,29 @@
+# wrangler.toml — 3C Card Showcase Worker
+# 3C Thread To Success™
+#
+# RECORD ONLY. This Worker is deployed by pasting worker.js into the Cloudflare
+# dashboard editor (Workers & Pages → 3c-card-showcase → Edit code); every
+# version in its Deployments list carries the Dashboard badge. This file records
+# the live settings and is never used to deploy. Do NOT run `npx wrangler deploy`
+# for this Worker: a Wrangler deploy replaces what the dashboard holds, and
+# mixing the two methods is not allowed.
+
 name = "3c-card-showcase"
 main = "worker.js"
 compatibility_date = "2024-01-01"
+
+# The free Cloudflare address is how the admin pages and the public showcase
+# pages reach this Worker (WORKER_URL), so it stays on. The preview address is
+# not used by anything and stays off.
+workers_dev = true
+preview_urls = false
 
 # R2 bucket binding
 # bucket_name must match the exact name in your Cloudflare R2 dashboard
 [[r2_buckets]]
 binding = "SHOWCASE_BUCKET"
 bucket_name = "3c-library-files"
+
+# No [vars] and no secrets: the owner check uses Supabase's public address and
+# public anon key, which live in worker.js. Sign-in itself happens in the admin
+# pages (GitHub through Supabase), not in this Worker.
