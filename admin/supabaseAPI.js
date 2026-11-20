@@ -17,7 +17,28 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = window.APP_CONFIG.SUPABASE_URL;
 const SUPABASE_KEY = window.APP_CONFIG.SUPABASE_ANON_KEY;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// This app keeps its own session name (storageKey): all of Chef's GitHub Pages
+// apps share one address (anica-blip.github.io). auth-guard.js and login.html
+// use the same name.
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storageKey: 'sb-3c-card-showcase-login',
+  },
+});
+
+/* ── Headers for owner-only Worker calls ────────────── */
+/*
+  The Worker only saves, deletes and uploads for the owner. Every such call
+  sends the current sign-in token. Reading a showcase needs no token.
+*/
+export async function authHeaders(extra = {}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data && data.session && data.session.access_token;
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : { ...extra };
+}
 
 /* ── Fetch all showcases ────────────────────────────── */
 export async function fetchAllShowcases() {
